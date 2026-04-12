@@ -14,7 +14,66 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      expenses: {
+        Row: {
+          amount: number
+          created_at: string
+          date: string
+          description: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          date?: string
+          description: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          date?: string
+          description?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      salary_settings: {
+        Row: {
+          created_at: string
+          id: string
+          needs_percent: number
+          salary: number
+          savings_percent: number
+          updated_at: string
+          user_id: string
+          wants_percent: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          needs_percent?: number
+          salary?: number
+          savings_percent?: number
+          updated_at?: string
+          user_id: string
+          wants_percent?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          needs_percent?: number
+          salary?: number
+          savings_percent?: number
+          updated_at?: string
+          user_id?: string
+          wants_percent?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
