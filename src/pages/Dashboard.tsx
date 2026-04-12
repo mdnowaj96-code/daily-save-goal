@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { CircleBox } from "@/components/CircleBox";
 import { ExpenseForm } from "@/components/ExpenseForm";
+import { ExpenseCharts } from "@/components/ExpenseCharts";
 import { ExpenseList } from "@/components/ExpenseList";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -146,6 +147,7 @@ export default function Dashboard() {
         </div>
 
         <ExpenseForm onAdd={handleAddExpense} />
+        <ExpenseCharts expenses={expenses} />
         <ExpenseList expenses={expenses} onDelete={handleDeleteExpense} />
       </main>
     </div>
