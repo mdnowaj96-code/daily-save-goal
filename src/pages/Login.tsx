@@ -2,30 +2,34 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { login, hasRegistered } from "@/lib/store";
-import { LogIn, UserPlus } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { LogIn, UserPlus, Loader2 } from "lucide-react";
 
-interface LoginProps {
-  onLogin: () => void;
-}
-
-export default function Login({ onLogin }: LoginProps) {
-  const [userId, setUserId] = useState("");
+export default function Login() {
+  const { signIn, signUp } = useAuth();
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const registered = hasRegistered();
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!userId.trim() || !password.trim()) {
-      setError("ইউজার আইডি এবং পাসওয়ার্ড দিন");
+    if (!email.trim() || !password.trim()) {
+      setError("ইমেইল এবং পাসওয়ার্ড দিন");
       return;
     }
-    if (login(userId.trim(), password)) {
-      onLogin();
-    } else {
-      setError("ইউজার আইডি বা পাসওয়ার্ড ভুল হয়েছে");
+    setLoading(true);
+    setError("");
+
+    const { error: authError } = isSignUp
+      ? await signUp(email.trim(), password)
+      : await signIn(email.trim(), password);
+
+    if (authError) {
+      setError(isSignUp ? "রেজিস্ট্রেশন ব্যর্থ হয়েছে। আবার চেষ্টা করুন।" : "ইমেইল বা পাসওয়ার্ড ভুল হয়েছে");
     }
+    setLoading(false);
   };
 
   return (
@@ -33,20 +37,21 @@ export default function Login({ onLogin }: LoginProps) {
       <Card className="w-full max-w-sm shadow-lg">
         <CardHeader className="text-center">
           <div className="mx-auto w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-2">
-            <LogIn className="h-7 w-7 text-primary" />
+            {isSignUp ? <UserPlus className="h-7 w-7 text-primary" /> : <LogIn className="h-7 w-7 text-primary" />}
           </div>
           <CardTitle className="text-xl">খরচের হিসাব</CardTitle>
           <CardDescription>
-            {registered ? "আপনার অ্যাকাউন্টে লগইন করুন" : "নতুন অ্যাকাউন্ট তৈরি করুন"}
+            {isSignUp ? "নতুন অ্যাকাউন্ট তৈরি করুন" : "আপনার অ্যাকাউন্টে লগইন করুন"}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
             <div className="space-y-2">
               <Input
-                placeholder="ইউজার আইডি"
-                value={userId}
-                onChange={(e) => { setUserId(e.target.value); setError(""); }}
+                type="email"
+                placeholder="ইমেইল"
+                value={email}
+                onChange={(e) => { setEmail(e.target.value); setError(""); }}
               />
               <Input
                 type="password"
@@ -56,10 +61,17 @@ export default function Login({ onLogin }: LoginProps) {
               />
             </div>
             {error && <p className="text-sm text-destructive text-center">{error}</p>}
-            <Button type="submit" className="w-full gap-2">
-              {registered ? <LogIn className="h-4 w-4" /> : <UserPlus className="h-4 w-4" />}
-              {registered ? "লগইন" : "রেজিস্টার ও লগইন"}
+            <Button type="submit" className="w-full gap-2" disabled={loading}>
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : isSignUp ? <UserPlus className="h-4 w-4" /> : <LogIn className="h-4 w-4" />}
+              {isSignUp ? "রেজিস্টার" : "লগইন"}
             </Button>
+            <button
+              type="button"
+              onClick={() => { setIsSignUp(!isSignUp); setError(""); }}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              {isSignUp ? "ইতোমধ্যে অ্যাকাউন্ট আছে? লগইন করুন" : "নতুন অ্যাকাউন্ট তৈরি করুন"}
+            </button>
           </form>
         </CardContent>
       </Card>
