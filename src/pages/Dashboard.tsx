@@ -120,6 +120,9 @@ export default function Dashboard() {
           wants_remaining: Number(h.wants_remaining),
           savings_remaining: Number(h.savings_remaining),
           closed_at: h.closed_at,
+          needs_percent: Number(h.needs_percent),
+          savings_percent: Number(h.savings_percent),
+          wants_percent: Number(h.wants_percent),
         })));
       }
       setLoading(false);
@@ -229,6 +232,9 @@ export default function Dashboard() {
         wants_remaining: Number(h.wants_remaining),
         savings_remaining: Number(h.savings_remaining),
         closed_at: h.closed_at,
+        needs_percent: Number(h.needs_percent),
+        savings_percent: Number(h.savings_percent),
+        wants_percent: Number(h.wants_percent),
       })));
     }
 
