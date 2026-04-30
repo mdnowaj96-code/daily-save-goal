@@ -21,6 +21,7 @@ export type Database = {
           date: string
           description: string
           id: string
+          month: string
           user_id: string
         }
         Insert: {
@@ -29,6 +30,7 @@ export type Database = {
           date?: string
           description: string
           id?: string
+          month?: string
           user_id: string
         }
         Update: {
@@ -37,13 +39,63 @@ export type Database = {
           date?: string
           description?: string
           id?: string
+          month?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      monthly_history: {
+        Row: {
+          closed_at: string
+          created_at: string
+          id: string
+          month: string
+          needs_percent: number
+          needs_remaining: number
+          salary: number
+          savings_percent: number
+          savings_remaining: number
+          total_expenses: number
+          user_id: string
+          wants_percent: number
+          wants_remaining: number
+        }
+        Insert: {
+          closed_at?: string
+          created_at?: string
+          id?: string
+          month: string
+          needs_percent?: number
+          needs_remaining?: number
+          salary?: number
+          savings_percent?: number
+          savings_remaining?: number
+          total_expenses?: number
+          user_id: string
+          wants_percent?: number
+          wants_remaining?: number
+        }
+        Update: {
+          closed_at?: string
+          created_at?: string
+          id?: string
+          month?: string
+          needs_percent?: number
+          needs_remaining?: number
+          salary?: number
+          savings_percent?: number
+          savings_remaining?: number
+          total_expenses?: number
+          user_id?: string
+          wants_percent?: number
+          wants_remaining?: number
         }
         Relationships: []
       }
       salary_settings: {
         Row: {
           created_at: string
+          current_month: string
           id: string
           needs_percent: number
           salary: number
@@ -54,6 +106,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          current_month?: string
           id?: string
           needs_percent?: number
           salary?: number
@@ -64,6 +117,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          current_month?: string
           id?: string
           needs_percent?: number
           salary?: number
