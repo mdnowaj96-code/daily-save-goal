@@ -3,6 +3,7 @@ import { CircleBox } from "@/components/CircleBox";
 import { ExpenseForm } from "@/components/ExpenseForm";
 import { ExpenseCharts } from "@/components/ExpenseCharts";
 import { ExpenseList } from "@/components/ExpenseList";
+import { MonthDetailDialog } from "@/components/MonthDetailDialog";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -52,6 +53,9 @@ interface MonthlyHistoryRecord {
   wants_remaining: number;
   savings_remaining: number;
   closed_at: string;
+  needs_percent: number;
+  savings_percent: number;
+  wants_percent: number;
 }
 
 const BN_MONTHS = [
@@ -79,6 +83,34 @@ export default function Dashboard() {
   const [history, setHistory] = useState<MonthlyHistoryRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [selectedMonth, setSelectedMonth] = useState<MonthlyHistoryRecord | null>(null);
+
+  const reloadHistory = useCallback(async () => {
+    if (!user) return;
+    const historyRes = await supabase
+      .from("monthly_history")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("month", { ascending: false });
+    if (historyRes.data) {
+      const mapped = historyRes.data.map((h: any) => ({
+        id: h.id,
+        month: h.month,
+        salary: Number(h.salary),
+        total_expenses: Number(h.total_expenses),
+        needs_remaining: Number(h.needs_remaining),
+        wants_remaining: Number(h.wants_remaining),
+        savings_remaining: Number(h.savings_remaining),
+        closed_at: h.closed_at,
+        needs_percent: Number(h.needs_percent),
+        savings_percent: Number(h.savings_percent),
+        wants_percent: Number(h.wants_percent),
+      }));
+      setHistory(mapped);
+      // Refresh selected month with latest snapshot
+      setSelectedMonth((prev) => prev ? mapped.find((m) => m.month === prev.month) ?? null : null);
+    }
+  }, [user]);
 
   // Load data
   useEffect(() => {
@@ -116,6 +148,9 @@ export default function Dashboard() {
           wants_remaining: Number(h.wants_remaining),
           savings_remaining: Number(h.savings_remaining),
           closed_at: h.closed_at,
+          needs_percent: Number(h.needs_percent),
+          savings_percent: Number(h.savings_percent),
+          wants_percent: Number(h.wants_percent),
         })));
       }
       setLoading(false);
@@ -225,6 +260,9 @@ export default function Dashboard() {
         wants_remaining: Number(h.wants_remaining),
         savings_remaining: Number(h.savings_remaining),
         closed_at: h.closed_at,
+        needs_percent: Number(h.needs_percent),
+        savings_percent: Number(h.savings_percent),
+        wants_percent: Number(h.wants_percent),
       })));
     }
 
@@ -263,7 +301,12 @@ export default function Dashboard() {
               ) : (
                 <div className="flex flex-col gap-3">
                   {history.map((h) => (
-                    <div key={h.id} className="rounded-lg border bg-card p-3 flex flex-col gap-2">
+                    <button
+                      key={h.id}
+                      type="button"
+                      onClick={() => { setSelectedMonth(h); setHistoryOpen(false); }}
+                      className="text-left rounded-lg border bg-card p-3 flex flex-col gap-2 hover:bg-accent/10 hover:border-primary/40 transition-colors"
+                    >
                       <div className="flex items-center justify-between">
                         <span className="text-sm font-bold text-foreground">{formatMonth(h.month)}</span>
                         <span className="text-xs text-muted-foreground">বেতন: ৳{h.salary.toLocaleString("bn-BD")}</span>
@@ -274,7 +317,8 @@ export default function Dashboard() {
                         <div className="flex justify-between"><span className="text-muted-foreground">ইচ্ছা বাকি:</span><span className="font-medium">৳{h.wants_remaining.toLocaleString("bn-BD")}</span></div>
                         <div className="flex justify-between"><span className="text-muted-foreground">সঞ্চয় বাকি:</span><span className="font-medium">৳{h.savings_remaining.toLocaleString("bn-BD")}</span></div>
                       </div>
-                    </div>
+                      <span className="text-[10px] text-primary mt-1">এডিট করতে ক্লিক করুন →</span>
+                    </button>
                   ))}
                 </div>
               )}
@@ -346,6 +390,21 @@ export default function Dashboard() {
           </AlertDialogContent>
         </AlertDialog>
       </main>
+
+      {selectedMonth && user && (
+        <MonthDetailDialog
+          open={!!selectedMonth}
+          onOpenChange={(o) => { if (!o) setSelectedMonth(null); }}
+          userId={user.id}
+          month={selectedMonth.month}
+          monthLabel={formatMonth(selectedMonth.month)}
+          salary={selectedMonth.salary}
+          needsPercent={selectedMonth.needs_percent}
+          savingsPercent={selectedMonth.savings_percent}
+          wantsPercent={selectedMonth.wants_percent}
+          onSnapshotUpdated={reloadHistory}
+        />
+      )}
     </div>
   );
 }
