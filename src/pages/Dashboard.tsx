@@ -3,6 +3,7 @@ import { CircleBox } from "@/components/CircleBox";
 import { ExpenseForm } from "@/components/ExpenseForm";
 import { ExpenseCharts } from "@/components/ExpenseCharts";
 import { ExpenseList } from "@/components/ExpenseList";
+import { MonthDetailDialog } from "@/components/MonthDetailDialog";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -52,6 +53,9 @@ interface MonthlyHistoryRecord {
   wants_remaining: number;
   savings_remaining: number;
   closed_at: string;
+  needs_percent: number;
+  savings_percent: number;
+  wants_percent: number;
 }
 
 const BN_MONTHS = [
