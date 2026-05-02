@@ -1,5 +1,5 @@
-import { useMemo } from "react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from "recharts";
+import { useMemo, useState } from "react";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -10,8 +10,15 @@ interface Expense {
   amount: number;
 }
 
+interface MonthlyHistoryItem {
+  month: string; // YYYY-MM
+  total_expenses: number;
+}
+
 interface ExpenseChartsProps {
   expenses: Expense[];
+  history?: MonthlyHistoryItem[];
+  currentMonth?: string;
 }
 
 const COLORS = [
@@ -28,45 +35,53 @@ const BN_MONTHS = [
   "জুলা", "আগ", "সেপ্টে", "অক্টো", "নভে", "ডিসে",
 ];
 
-export function ExpenseCharts({ expenses }: ExpenseChartsProps) {
+export function ExpenseCharts({ expenses, history = [], currentMonth }: ExpenseChartsProps) {
+  const [selectedMonth, setSelectedMonth] = useState<{ month: string; amount: number } | null>(null);
   // Daily expenses for current month
   const dailyData = useMemo(() => {
     const now = new Date();
-    const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    const cm = currentMonth ?? `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
     const daily: Record<number, number> = {};
 
     expenses.forEach((e) => {
-      if (e.date.startsWith(currentMonth)) {
+      if (e.date.startsWith(cm)) {
         const day = new Date(e.date).getDate();
         daily[day] = (daily[day] || 0) + e.amount;
       }
     });
 
-    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const [cy, cmo] = cm.split("-").map(Number);
+    const daysInMonth = new Date(cy, cmo, 0).getDate();
     return Array.from({ length: daysInMonth }, (_, i) => ({
       day: `${i + 1}`,
       amount: daily[i + 1] || 0,
     }));
-  }, [expenses]);
+  }, [expenses, currentMonth]);
 
-  // Monthly totals (last 6 months)
+  // Monthly totals: combine history (closed months) + current month from expenses
   const monthlyData = useMemo(() => {
     const monthly: Record<string, number> = {};
+    // Closed months from history
+    history.forEach((h) => {
+      monthly[h.month] = h.total_expenses;
+    });
+    // Current/active month from live expenses
     expenses.forEach((e) => {
-      const key = e.date.substring(0, 7); // YYYY-MM
+      const key = e.date.substring(0, 7);
       monthly[key] = (monthly[key] || 0) + e.amount;
     });
 
-    const now = new Date();
-    return Array.from({ length: 6 }, (_, i) => {
-      const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1);
-      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    const keys = Object.keys(monthly).sort();
+    return keys.map((key) => {
+      const [, mo] = key.split("-");
       return {
-        month: BN_MONTHS[d.getMonth()],
-        amount: monthly[key] || 0,
+        key,
+        month: BN_MONTHS[parseInt(mo, 10) - 1],
+        amount: monthly[key],
+        isCurrent: key === currentMonth,
       };
     });
-  }, [expenses]);
+  }, [expenses, history, currentMonth]);
 
   // Top expense categories (by description)
   const categoryData = useMemo(() => {
@@ -80,7 +95,7 @@ export function ExpenseCharts({ expenses }: ExpenseChartsProps) {
       .map(([name, value]) => ({ name, value }));
   }, [expenses]);
 
-  if (expenses.length === 0) return null;
+  if (expenses.length === 0 && history.length === 0) return null;
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
@@ -120,15 +135,41 @@ export function ExpenseCharts({ expenses }: ExpenseChartsProps) {
           </TabsContent>
 
           <TabsContent value="monthly">
-            <ResponsiveContainer width="100%" height={200}>
-              <LineChart data={monthlyData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="month" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
-                <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} width={45} />
-                <Tooltip content={<CustomTooltip />} />
-                <Line type="monotone" dataKey="amount" stroke="hsl(var(--primary))" strokeWidth={2} dot={{ fill: "hsl(var(--primary))", r: 4 }} />
-              </LineChart>
-            </ResponsiveContainer>
+            {monthlyData.length === 0 ? (
+              <p className="text-center text-xs text-muted-foreground py-8">কোনো ডেটা নেই</p>
+            ) : (
+              <>
+                <ResponsiveContainer width="100%" height={220}>
+                  <BarChart data={monthlyData} margin={{ top: 10, right: 5, left: 0, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <XAxis dataKey="month" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
+                    <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} width={45} />
+                    <Tooltip content={<CustomTooltip />} cursor={{ fill: "hsl(var(--muted) / 0.3)" }} />
+                    <Bar
+                      dataKey="amount"
+                      radius={[4, 4, 0, 0]}
+                      onClick={(data: any) => setSelectedMonth({ month: data.month, amount: data.amount })}
+                      style={{ cursor: "pointer" }}
+                    >
+                      {monthlyData.map((entry, i) => (
+                        <Cell
+                          key={i}
+                          fill={entry.isCurrent ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))"}
+                          fillOpacity={entry.isCurrent ? 1 : 0.6}
+                        />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+                {selectedMonth && (
+                  <div className="mt-3 rounded-md border bg-muted/40 px-3 py-2 flex items-center justify-between">
+                    <span className="text-xs text-muted-foreground">{selectedMonth.month}</span>
+                    <span className="text-sm font-bold text-foreground">৳{selectedMonth.amount.toLocaleString("bn-BD")}</span>
+                  </div>
+                )}
+                <p className="text-[10px] text-muted-foreground mt-2 text-center">বার এ ক্লিক করে মাসের পরিমাণ দেখুন</p>
+              </>
+            )}
           </TabsContent>
 
           <TabsContent value="category">
