@@ -7,7 +7,7 @@ import { MonthDetailDialog } from "@/components/MonthDetailDialog";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { LogOut, Loader2, CalendarCheck, History } from "lucide-react";
+import { LogOut, Loader2, CalendarCheck, History, FileDown } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,6 +27,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
+import { generatePdfReport } from "@/lib/generatePdfReport";
 
 interface SalarySettings {
   salary: number;
@@ -282,6 +283,31 @@ export default function Dashboard() {
     toast.success(`${formatMonth(settings.currentMonth)} সফলভাবে ক্লোজ করা হয়েছে। নতুন মাসের বেতন ইনপুট দিন।`);
   }, [user, settings, totalExpenses, needsRemaining, wantsRemaining, savingsRemaining, updateSettings]);
 
+  const handleDownloadPdf = useCallback(() => {
+    try {
+      generatePdfReport({
+        monthLabel: formatMonth(settings.currentMonth),
+        monthKey: settings.currentMonth,
+        salary: settings.salary,
+        needsPercent: settings.needsPercent,
+        wantsPercent: settings.wantsPercent,
+        savingsPercent: settings.savingsPercent,
+        needsAmount,
+        wantsAmount,
+        savingsAmount,
+        needsRemaining,
+        wantsRemaining,
+        savingsRemaining,
+        totalExpenses,
+        expenses: activeExpenses.map((e) => ({ date: e.date, description: e.description, amount: e.amount })),
+      });
+      toast.success("PDF রিপোর্ট ডাউনলোড হয়েছে");
+    } catch (e) {
+      console.error(e);
+      toast.error("PDF তৈরি করতে সমস্যা হয়েছে");
+    }
+  }, [settings, needsAmount, wantsAmount, savingsAmount, needsRemaining, wantsRemaining, savingsRemaining, totalExpenses, activeExpenses]);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -385,6 +411,11 @@ export default function Dashboard() {
           currentMonth={settings.currentMonth}
         />
         <ExpenseList expenses={activeExpenses} onDelete={handleDeleteExpense} onEdit={handleEditExpense} />
+
+        <Button variant="outline" onClick={handleDownloadPdf} className="gap-2">
+          <FileDown className="h-4 w-4" />
+          PDF রিপোর্ট ডাউনলোড করুন
+        </Button>
 
         <AlertDialog>
           <AlertDialogTrigger asChild>
