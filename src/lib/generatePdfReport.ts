@@ -28,14 +28,12 @@ export interface PdfReportInput {
 const FONT_NAME = "NotoSansBengali";
 const FONT_FILE = "NotoSansBengali.ttf";
 
-let fontRegistered = false;
 const ensureFont = (doc: jsPDF) => {
   // jsPDF instances are fresh; we register on each instance
   doc.addFileToVFS(FONT_FILE, notoSansBengaliBase64);
   doc.addFont(FONT_FILE, FONT_NAME, "normal");
   doc.addFont(FONT_FILE, FONT_NAME, "bold");
   doc.setFont(FONT_NAME, "normal");
-  fontRegistered = true;
 };
 
 const fmt = (n: number) => `৳${Math.round(n).toLocaleString("bn-BD")}`;
