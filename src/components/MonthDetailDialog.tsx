@@ -3,8 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Trash2, Pencil, Check, X, Plus, Loader2 } from "lucide-react";
+import { Trash2, Pencil, Check, X, Plus, Loader2, FileDown } from "lucide-react";
 import { toast } from "sonner";
+import { generatePdfReport } from "@/lib/generatePdfReport";
 
 interface Expense {
   id: string;
@@ -155,6 +156,38 @@ export function MonthDetailDialog({
 
   const total = expenses.reduce((s, e) => s + e.amount, 0);
 
+  const handleDownloadPdf = () => {
+    try {
+      const needsAmount = (salary * needsPercent) / 100;
+      const wantsAmount = (salary * wantsPercent) / 100;
+      const savingsAmount = (salary * savingsPercent) / 100;
+      let rem = total;
+      const needsUsed = Math.min(rem, needsAmount); rem -= needsUsed;
+      const wantsUsed = Math.min(rem, wantsAmount); rem -= wantsUsed;
+      const savingsUsed = Math.min(rem, savingsAmount);
+      generatePdfReport({
+        monthLabel,
+        monthKey: month,
+        salary,
+        needsPercent,
+        wantsPercent,
+        savingsPercent,
+        needsAmount,
+        wantsAmount,
+        savingsAmount,
+        needsRemaining: Math.max(0, needsAmount - needsUsed),
+        wantsRemaining: Math.max(0, wantsAmount - wantsUsed),
+        savingsRemaining: Math.max(0, savingsAmount - savingsUsed),
+        totalExpenses: total,
+        expenses: expenses.map((e) => ({ date: e.date, description: e.description, amount: e.amount })),
+      });
+      toast.success("PDF রিপোর্ট ডাউনলোড হয়েছে");
+    } catch (e) {
+      console.error(e);
+      toast.error("PDF তৈরি করতে সমস্যা হয়েছে");
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md max-h-[85vh] overflow-y-auto">
@@ -166,6 +199,11 @@ export function MonthDetailDialog({
           <span className="text-muted-foreground">মোট খরচ</span>
           <span className="font-bold text-destructive">৳{total.toLocaleString("bn-BD")}</span>
         </div>
+
+        <Button size="sm" variant="outline" onClick={handleDownloadPdf} className="gap-1.5 h-8">
+          <FileDown className="h-3.5 w-3.5" />
+          এই মাসের PDF রিপোর্ট
+        </Button>
 
         {/* Add new */}
         <div className="rounded-lg border bg-card p-3 flex flex-col gap-2">
