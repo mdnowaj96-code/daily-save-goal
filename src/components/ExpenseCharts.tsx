@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Cell as BarCell } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -152,7 +152,7 @@ export function ExpenseCharts({ expenses, history = [], currentMonth }: ExpenseC
                       style={{ cursor: "pointer" }}
                     >
                       {monthlyData.map((entry, i) => (
-                        <BarCell
+                        <Cell
                           key={i}
                           fill={entry.isCurrent ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))"}
                           fillOpacity={entry.isCurrent ? 1 : 0.6}
