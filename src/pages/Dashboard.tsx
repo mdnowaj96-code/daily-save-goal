@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { generatePdfReport } from "@/lib/generatePdfReport";
+import { InstallAppButton } from "@/components/InstallAppButton";
 
 interface SalarySettings {
   salary: number;
@@ -416,6 +417,8 @@ export default function Dashboard() {
           <FileDown className="h-4 w-4" />
           PDF রিপোর্ট ডাউনলোড করুন
         </Button>
+
+        <InstallAppButton />
 
         <AlertDialog>
           <AlertDialogTrigger asChild>
