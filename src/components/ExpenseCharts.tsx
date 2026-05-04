@@ -91,7 +91,6 @@ export function ExpenseCharts({ expenses, history = [], currentMonth }: ExpenseC
     });
     return Object.entries(cats)
       .sort((a, b) => b[1] - a[1])
-      .slice(0, 6)
       .map(([name, value]) => ({ name, value }));
   }, [expenses]);
 
@@ -173,11 +172,17 @@ export function ExpenseCharts({ expenses, history = [], currentMonth }: ExpenseC
           </TabsContent>
 
           <TabsContent value="category">
+            {categoryData.length === 0 ? (
+              <p className="text-center text-xs text-muted-foreground py-8">কোনো ডেটা নেই</p>
+            ) : (
             <div className="flex flex-col items-center">
+              {(() => {
+                const totalCat = categoryData.reduce((s, c) => s + c.value, 0);
+                return (
               <ResponsiveContainer width="100%" height={200}>
                 <PieChart>
                   <Pie
-                    data={categoryData}
+                    data={categoryData.slice(0, 6)}
                     cx="50%"
                     cy="50%"
                     innerRadius={50}
@@ -185,22 +190,32 @@ export function ExpenseCharts({ expenses, history = [], currentMonth }: ExpenseC
                     paddingAngle={3}
                     dataKey="value"
                   >
-                    {categoryData.map((_, i) => (
+                    {categoryData.slice(0, 6).map((_, i) => (
                       <Cell key={i} fill={COLORS[i % COLORS.length]} />
                     ))}
                   </Pie>
                   <Tooltip formatter={(value: number) => `৳${value.toLocaleString("bn-BD")}`} />
                 </PieChart>
               </ResponsiveContainer>
-              <div className="flex flex-wrap gap-2 justify-center mt-2">
+                );
+              })()}
+              <div className="w-full mt-3 flex flex-col gap-1.5">
                 {categoryData.map((item, i) => (
-                  <div key={item.name} className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <span className="w-2.5 h-2.5 rounded-full" style={{ background: COLORS[i % COLORS.length] }} />
-                    {item.name}
+                  <div key={item.name} className="flex items-center justify-between gap-2 text-xs px-2 py-1.5 rounded-md bg-muted/40">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: COLORS[i % COLORS.length] }} />
+                      <span className="text-foreground truncate">{item.name}</span>
+                    </div>
+                    <span className="font-semibold text-foreground shrink-0">৳{item.value.toLocaleString("bn-BD")}</span>
                   </div>
                 ))}
+                <div className="flex items-center justify-between gap-2 text-xs px-2 py-1.5 mt-1 border-t pt-2">
+                  <span className="font-semibold text-muted-foreground">মোট</span>
+                  <span className="font-bold text-destructive">৳{categoryData.reduce((s, c) => s + c.value, 0).toLocaleString("bn-BD")}</span>
+                </div>
               </div>
             </div>
+            )}
           </TabsContent>
         </Tabs>
       </CardContent>
