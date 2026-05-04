@@ -83,11 +83,35 @@ export function ExpenseCharts({ expenses, history = [], currentMonth }: ExpenseC
     });
   }, [expenses, history, currentMonth]);
 
-  // Top expense categories (by description)
+  // Smart category grouping: normalize descriptions and group by keyword
+  // so "ভাড়া", "রিকশা ভাড়া", "বাস ভাড়া" all sum together under "ভাড়া".
   const categoryData = useMemo(() => {
+    // Keywords (Bangla + common English) — order matters: first match wins
+    const KEYWORDS: string[] = [
+      "ভাড়া", "যাতায়াত", "রিকশা", "বাস", "সিএনজি", "উবার", "পাঠাও",
+      "বাজার", "খাবার", "নাস্তা", "চা", "রেস্টুরেন্ট", "হোটেল",
+      "বিল", "বিদ্যুৎ", "কারেন্ট", "গ্যাস", "পানি", "ইন্টারনেট", "মোবাইল", "রিচার্জ",
+      "ঔষধ", "ওষুধ", "ডাক্তার", "চিকিৎসা",
+      "পোশাক", "কাপড়",
+      "শিক্ষা", "বই", "স্কুল", "কোচিং",
+      "বাসা ভাড়া", "বাড়ি ভাড়া",
+      "দান", "যাকাত", "সাহায্য",
+      "বিনোদন", "সিনেমা",
+    ];
+
+    const normalize = (raw: string) => {
+      const s = raw.trim().toLowerCase().replace(/\s+/g, " ");
+      // Try keyword match first
+      for (const kw of KEYWORDS) {
+        if (s.includes(kw.toLowerCase())) return kw;
+      }
+      return s; // fallback: normalized description itself
+    };
+
     const cats: Record<string, number> = {};
     expenses.forEach((e) => {
-      cats[e.description] = (cats[e.description] || 0) + e.amount;
+      const key = normalize(e.description);
+      cats[key] = (cats[key] || 0) + e.amount;
     });
     return Object.entries(cats)
       .sort((a, b) => b[1] - a[1])
