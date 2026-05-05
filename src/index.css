@@ -91,10 +91,11 @@
 
   body {
     @apply bg-background text-foreground;
-    font-family: "Hind Siliguri", "Noto Sans Bengali", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-family: "Noto Sans Bengali", "Tiro Bangla", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     font-feature-settings: "kern", "liga";
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+    line-height: 1.6;
   }
 }
