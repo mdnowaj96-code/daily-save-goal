@@ -83,39 +83,18 @@ export function ExpenseCharts({ expenses, history = [], currentMonth }: ExpenseC
     });
   }, [expenses, history, currentMonth]);
 
-  // Smart category grouping: normalize descriptions and group by keyword
-  // so "ভাড়া", "রিকশা ভাড়া", "বাস ভাড়া" all sum together under "ভাড়া".
+  // Group by the exact description the user typed (case-insensitive, whitespace-normalized).
+  // Display key preserves original casing of the first occurrence.
   const categoryData = useMemo(() => {
-    // Keywords (Bangla + common English) — order matters: first match wins
-    const KEYWORDS: string[] = [
-      "ভাড়া", "যাতায়াত", "রিকশা", "বাস", "সিএনজি", "উবার", "পাঠাও",
-      "বাজার", "খাবার", "নাস্তা", "চা", "রেস্টুরেন্ট", "হোটেল",
-      "বিল", "বিদ্যুৎ", "কারেন্ট", "গ্যাস", "পানি", "ইন্টারনেট", "মোবাইল", "রিচার্জ",
-      "ঔষধ", "ওষুধ", "ডাক্তার", "চিকিৎসা",
-      "পোশাক", "কাপড়",
-      "শিক্ষা", "বই", "স্কুল", "কোচিং",
-      "বাসা ভাড়া", "বাড়ি ভাড়া",
-      "দান", "যাকাত", "সাহায্য",
-      "বিনোদন", "সিনেমা",
-    ];
-
-    const normalize = (raw: string) => {
-      const s = raw.trim().toLowerCase().replace(/\s+/g, " ");
-      // Try keyword match first
-      for (const kw of KEYWORDS) {
-        if (s.includes(kw.toLowerCase())) return kw;
-      }
-      return s; // fallback: normalized description itself
-    };
-
-    const cats: Record<string, number> = {};
+    const cats: Record<string, { name: string; value: number }> = {};
     expenses.forEach((e) => {
-      const key = normalize(e.description);
-      cats[key] = (cats[key] || 0) + e.amount;
+      const normalized = e.description.trim().replace(/\s+/g, " ");
+      const key = normalized.toLowerCase();
+      if (!cats[key]) cats[key] = { name: normalized, value: 0 };
+      cats[key].value += e.amount;
     });
-    return Object.entries(cats)
-      .sort((a, b) => b[1] - a[1])
-      .map(([name, value]) => ({ name, value }));
+    return Object.values(cats)
+      .sort((a, b) => b.value - a.value);
   }, [expenses]);
 
   if (expenses.length === 0 && history.length === 0) return null;
@@ -225,12 +204,12 @@ export function ExpenseCharts({ expenses, history = [], currentMonth }: ExpenseC
               })()}
               <div className="w-full mt-3 flex flex-col gap-1.5">
                 {categoryData.map((item, i) => (
-                  <div key={item.name} className="flex items-center justify-between gap-2 text-xs px-2 py-1.5 rounded-md bg-muted/40">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: COLORS[i % COLORS.length] }} />
-                      <span className="text-foreground truncate">{item.name}</span>
+                  <div key={item.name} className="flex items-start justify-between gap-2 text-xs px-2 py-1.5 rounded-md bg-muted/40">
+                    <div className="flex items-start gap-2 min-w-0 flex-1">
+                      <span className="w-2.5 h-2.5 rounded-full shrink-0 mt-1" style={{ background: COLORS[i % COLORS.length] }} />
+                      <span className="text-foreground break-words whitespace-normal leading-snug">{item.name}</span>
                     </div>
-                    <span className="font-semibold text-foreground shrink-0">৳{item.value.toLocaleString("bn-BD")}</span>
+                    <span className="font-semibold text-foreground shrink-0 whitespace-nowrap">৳{item.value.toLocaleString("bn-BD")}</span>
                   </div>
                 ))}
                 <div className="flex items-center justify-between gap-2 text-xs px-2 py-1.5 mt-1 border-t pt-2">
