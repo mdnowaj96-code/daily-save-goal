@@ -30,6 +30,15 @@ const COLORS = [
   "hsl(190, 70%, 45%)",
 ];
 
+const GRADIENTS: Array<[string, string]> = [
+  ["hsl(210, 80%, 60%)", "hsl(210, 80%, 45%)"],
+  ["hsl(340, 75%, 65%)", "hsl(340, 75%, 50%)"],
+  ["hsl(160, 65%, 55%)", "hsl(160, 65%, 40%)"],
+  ["hsl(38, 95%, 65%)", "hsl(38, 95%, 50%)"],
+  ["hsl(270, 70%, 65%)", "hsl(270, 70%, 50%)"],
+  ["hsl(190, 80%, 55%)", "hsl(190, 80%, 40%)"],
+];
+
 const BN_MONTHS = [
   "জানু", "ফেব্রু", "মার্চ", "এপ্রি", "মে", "জুন",
   "জুলা", "আগ", "সেপ্টে", "অক্টো", "নভে", "ডিসে",
@@ -112,9 +121,9 @@ export function ExpenseCharts({ expenses, history = [], currentMonth }: ExpenseC
   };
 
   return (
-    <Card>
+    <Card className="overflow-hidden border-border/60 shadow-elegant gradient-card">
       <CardHeader className="pb-2">
-        <CardTitle className="text-sm">খরচের বিশ্লেষণ</CardTitle>
+        <CardTitle className="text-sm text-gradient-primary">খরচের বিশ্লেষণ</CardTitle>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="daily" className="w-full">
@@ -127,11 +136,17 @@ export function ExpenseCharts({ expenses, history = [], currentMonth }: ExpenseC
           <TabsContent value="daily">
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={dailyData}>
+                <defs>
+                  <linearGradient id="dailyBar" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={1} />
+                    <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0.35} />
+                  </linearGradient>
+                </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                 <XAxis dataKey="day" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} interval="preserveStartEnd" />
                 <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} width={45} />
                 <Tooltip content={<CustomTooltip />} />
-                <Bar dataKey="amount" fill="hsl(var(--primary))" radius={[3, 3, 0, 0]} />
+                <Bar dataKey="amount" fill="url(#dailyBar)" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </TabsContent>
@@ -143,21 +158,30 @@ export function ExpenseCharts({ expenses, history = [], currentMonth }: ExpenseC
               <>
                 <ResponsiveContainer width="100%" height={220}>
                   <BarChart data={monthlyData} margin={{ top: 10, right: 5, left: 0, bottom: 5 }}>
+                    <defs>
+                      <linearGradient id="monthlyBarActive" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={1} />
+                        <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0.4} />
+                      </linearGradient>
+                      <linearGradient id="monthlyBarPast" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="hsl(var(--muted-foreground))" stopOpacity={0.7} />
+                        <stop offset="100%" stopColor="hsl(var(--muted-foreground))" stopOpacity={0.3} />
+                      </linearGradient>
+                    </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                     <XAxis dataKey="month" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
                     <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} width={45} />
                     <Tooltip content={<CustomTooltip />} cursor={{ fill: "hsl(var(--muted) / 0.3)" }} />
                     <Bar
                       dataKey="amount"
-                      radius={[4, 4, 0, 0]}
+                      radius={[6, 6, 0, 0]}
                       onClick={(data: any) => setSelectedMonth({ month: data.month, amount: data.amount })}
                       style={{ cursor: "pointer" }}
                     >
                       {monthlyData.map((entry, i) => (
                         <Cell
                           key={i}
-                          fill={entry.isCurrent ? "hsl(var(--primary))" : "hsl(var(--muted-foreground))"}
-                          fillOpacity={entry.isCurrent ? 1 : 0.6}
+                          fill={entry.isCurrent ? "url(#monthlyBarActive)" : "url(#monthlyBarPast)"}
                         />
                       ))}
                     </Bar>
@@ -184,17 +208,27 @@ export function ExpenseCharts({ expenses, history = [], currentMonth }: ExpenseC
                 return (
               <ResponsiveContainer width="100%" height={200}>
                 <PieChart>
+                  <defs>
+                    {GRADIENTS.map(([from, to], i) => (
+                      <linearGradient key={i} id={`pieGrad-${i}`} x1="0" y1="0" x2="1" y2="1">
+                        <stop offset="0%" stopColor={from} />
+                        <stop offset="100%" stopColor={to} />
+                      </linearGradient>
+                    ))}
+                  </defs>
                   <Pie
                     data={categoryData.slice(0, 6)}
                     cx="50%"
                     cy="50%"
                     innerRadius={50}
-                    outerRadius={80}
+                    outerRadius={82}
                     paddingAngle={3}
                     dataKey="value"
+                    stroke="hsl(var(--card))"
+                    strokeWidth={2}
                   >
                     {categoryData.slice(0, 6).map((_, i) => (
-                      <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                      <Cell key={i} fill={`url(#pieGrad-${i % GRADIENTS.length})`} />
                     ))}
                   </Pie>
                   <Tooltip formatter={(value: number) => `৳${value.toLocaleString("bn-BD")}`} />

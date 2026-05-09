@@ -26,19 +26,29 @@ export function CircleBox({ label, amount, percent, colorVar, onEdit, subtitle }
 
   const circumference = 2 * Math.PI * 54;
   const strokeDashoffset = circumference - (circumference * (percent ?? 100)) / 100;
+  const gradId = `grad-${colorVar}`;
 
   return (
-    <div className="flex flex-col items-center gap-1">
-      <div className="relative w-28 h-28 sm:w-32 sm:h-32">
+    <div className="flex flex-col items-center gap-1.5 animate-fade-in">
+      <div
+        className="relative w-28 h-28 sm:w-32 sm:h-32 rounded-full"
+        style={{ filter: `drop-shadow(0 6px 18px hsl(var(--${colorVar}) / 0.30))` }}
+      >
         <svg className="w-full h-full -rotate-90" viewBox="0 0 120 120">
-          <circle cx="60" cy="60" r="54" fill="none" stroke="hsl(var(--muted))" strokeWidth="8" />
+          <defs>
+            <linearGradient id={gradId} x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor={`hsl(var(--${colorVar}))`} stopOpacity="1" />
+              <stop offset="100%" stopColor={`hsl(var(--${colorVar}))`} stopOpacity="0.55" />
+            </linearGradient>
+          </defs>
+          <circle cx="60" cy="60" r="54" fill="hsl(var(--card))" stroke="hsl(var(--muted))" strokeWidth="6" />
           <circle
             cx="60"
             cy="60"
             r="54"
             fill="none"
-            stroke={`hsl(var(--${colorVar}))`}
-            strokeWidth="8"
+            stroke={`url(#${gradId})`}
+            strokeWidth="9"
             strokeLinecap="round"
             strokeDasharray={circumference}
             strokeDashoffset={strokeDashoffset}

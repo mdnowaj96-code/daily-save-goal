@@ -65,8 +65,8 @@ export function ExpenseList({ expenses, onDelete, onEdit }: ExpenseListProps) {
       {sortedDates.map((date) => {
         const dayTotal = grouped[date].reduce((s, e) => s + e.amount, 0);
         return (
-          <div key={date} className="rounded-lg border bg-card overflow-hidden">
-            <div className="flex items-center justify-between px-4 py-2 bg-muted/50">
+          <div key={date} className="rounded-xl border border-border/60 gradient-card overflow-hidden shadow-soft animate-fade-in">
+            <div className="flex items-center justify-between px-4 py-2 bg-muted/40 border-b border-border/40">
               <span className="text-xs font-semibold text-foreground">
                 {new Date(date).toLocaleDateString("bn-BD", { day: "numeric", month: "long", year: "numeric" })}
               </span>

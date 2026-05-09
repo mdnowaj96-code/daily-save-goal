@@ -319,10 +319,15 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-10 bg-card border-b px-4 py-3 flex items-center justify-between">
-        <div className="flex flex-col">
-          <h1 className="text-base font-bold text-foreground">খরচের হিসাব</h1>
-          <span className="text-[10px] text-muted-foreground">{formatMonth(settings.currentMonth)}</span>
+      <header className="sticky top-0 z-10 backdrop-blur-md bg-card/80 border-b border-border/60 px-4 py-3 flex items-center justify-between shadow-soft">
+        <div className="flex items-center gap-2.5">
+          <div className="h-9 w-9 rounded-xl gradient-primary shadow-glow flex items-center justify-center text-primary-foreground font-bold text-sm">
+            ৳
+          </div>
+          <div className="flex flex-col leading-tight">
+            <h1 className="text-base font-bold text-gradient-primary">খরচের হিসাব</h1>
+            <span className="text-[10px] text-muted-foreground">{formatMonth(settings.currentMonth)}</span>
+          </div>
         </div>
         <div className="flex items-center gap-1">
           <Dialog open={historyOpen} onOpenChange={setHistoryOpen}>
