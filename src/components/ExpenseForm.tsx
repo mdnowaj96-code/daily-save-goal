@@ -23,8 +23,8 @@ export function ExpenseForm({ onAdd }: ExpenseFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-3 p-4 rounded-lg border bg-card">
-      <h3 className="text-sm font-semibold text-foreground">নতুন খরচ যোগ করুন</h3>
+    <form onSubmit={handleSubmit} className="flex flex-col gap-3 p-4 rounded-xl border border-border/60 gradient-card shadow-soft">
+      <h3 className="text-sm font-semibold text-gradient-primary">নতুন খরচ যোগ করুন</h3>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
         <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="text-sm" />
         <Input
@@ -41,7 +41,7 @@ export function ExpenseForm({ onAdd }: ExpenseFormProps) {
           className="text-sm"
         />
       </div>
-      <Button type="submit" className="w-full sm:w-auto sm:self-end gap-2">
+      <Button type="submit" className="w-full sm:w-auto sm:self-end gap-2 gradient-primary border-0 shadow-glow hover:opacity-90 transition-opacity">
         <Plus className="h-4 w-4" />
         যোগ করুন
       </Button>
