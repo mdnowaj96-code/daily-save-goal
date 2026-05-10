@@ -29,6 +29,7 @@ import {
 import { toast } from "sonner";
 import { generatePdfReport } from "@/lib/generatePdfReport";
 import { InstallAppButton } from "@/components/InstallAppButton";
+import { UpdateAppButton } from "@/components/UpdateAppButton";
 
 interface SalarySettings {
   salary: number;
@@ -424,6 +425,8 @@ export default function Dashboard() {
         </Button>
 
         <InstallAppButton />
+
+        <UpdateAppButton />
 
         <AlertDialog>
           <AlertDialogTrigger asChild>
