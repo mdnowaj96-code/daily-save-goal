@@ -417,7 +417,6 @@ export default function Dashboard() {
           history={history.map((h) => ({ month: h.month, total_expenses: h.total_expenses }))}
           currentMonth={settings.currentMonth}
         />
-        <ExpenseList expenses={activeExpenses} onDelete={handleDeleteExpense} onEdit={handleEditExpense} />
 
         <Button variant="outline" onClick={handleDownloadPdf} className="gap-2">
           <FileDown className="h-4 w-4" />
