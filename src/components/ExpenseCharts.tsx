@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ExpenseList } from "@/components/ExpenseList";
 
 interface Expense {
   id: string;
@@ -19,6 +20,8 @@ interface ExpenseChartsProps {
   expenses: Expense[];
   history?: MonthlyHistoryItem[];
   currentMonth?: string;
+  onDeleteExpense?: (id: string) => void;
+  onEditExpense?: (id: string, date: string, description: string, amount: number) => void | Promise<void>;
 }
 
 const COLORS = [
@@ -44,7 +47,7 @@ const BN_MONTHS = [
   "জুলা", "আগ", "সেপ্টে", "অক্টো", "নভে", "ডিসে",
 ];
 
-export function ExpenseCharts({ expenses, history = [], currentMonth }: ExpenseChartsProps) {
+export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteExpense, onEditExpense }: ExpenseChartsProps) {
   const [selectedMonth, setSelectedMonth] = useState<{ month: string; amount: number } | null>(null);
   // Daily expenses for current month
   const dailyData = useMemo(() => {
@@ -149,6 +152,15 @@ export function ExpenseCharts({ expenses, history = [], currentMonth }: ExpenseC
                 <Bar dataKey="amount" fill="url(#dailyBar)" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
+            {onDeleteExpense && expenses.length > 0 && (
+              <div className="mt-4">
+                <ExpenseList
+                  expenses={expenses}
+                  onDelete={onDeleteExpense}
+                  onEdit={onEditExpense}
+                />
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="monthly">

@@ -207,6 +207,31 @@ export default function Dashboard() {
     }
   }, [user, settings.currentMonth]);
 
+  const handleDeleteExpense = useCallback(async (id: string) => {
+    if (!user) return;
+    const { error } = await supabase.from("expenses").delete().eq("id", id).eq("user_id", user.id);
+    if (error) {
+      toast.error("খরচ মুছতে সমস্যা হয়েছে");
+      return;
+    }
+    setExpenses((prev) => prev.filter((e) => e.id !== id));
+  }, [user]);
+
+  const handleEditExpense = useCallback(async (id: string, date: string, description: string, amount: number) => {
+    if (!user) return;
+    const month = date.substring(0, 7);
+    const { error } = await supabase
+      .from("expenses")
+      .update({ date, description, amount, month })
+      .eq("id", id)
+      .eq("user_id", user.id);
+    if (error) {
+      toast.error("খরচ আপডেট করতে সমস্যা হয়েছে");
+      return;
+    }
+    setExpenses((prev) => prev.map((e) => e.id === id ? { ...e, date, description, amount, month } : e));
+  }, [user]);
+
   const handleCloseMonth = useCallback(async () => {
     if (!user) return;
     // Save closed month snapshot
@@ -397,6 +422,8 @@ export default function Dashboard() {
           expenses={activeExpenses}
           history={history.map((h) => ({ month: h.month, total_expenses: h.total_expenses }))}
           currentMonth={settings.currentMonth}
+          onDeleteExpense={handleDeleteExpense}
+          onEditExpense={handleEditExpense}
         />
 
         <Button variant="outline" onClick={handleDownloadPdf} className="gap-2">
