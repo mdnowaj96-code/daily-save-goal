@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from "react";
 import { CircleBox } from "@/components/CircleBox";
 import { ExpenseForm } from "@/components/ExpenseForm";
 import { ExpenseCharts } from "@/components/ExpenseCharts";
-import { ExpenseList } from "@/components/ExpenseList";
 import { MonthDetailDialog } from "@/components/MonthDetailDialog";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
