@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from "react";
 import { CircleBox } from "@/components/CircleBox";
 import { ExpenseForm } from "@/components/ExpenseForm";
 import { ExpenseCharts } from "@/components/ExpenseCharts";
-import { ExpenseList } from "@/components/ExpenseList";
 import { MonthDetailDialog } from "@/components/MonthDetailDialog";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
@@ -208,24 +207,6 @@ export default function Dashboard() {
     }
   }, [user, settings.currentMonth]);
 
-  const handleDeleteExpense = useCallback(async (id: string) => {
-    await supabase.from("expenses").delete().eq("id", id);
-    setExpenses((prev) => prev.filter((e) => e.id !== id));
-  }, []);
-
-  const handleEditExpense = useCallback(async (id: string, date: string, description: string, amount: number) => {
-    const month = date.substring(0, 7);
-    const { error } = await supabase.from("expenses").update({
-      date, description, amount, month,
-    }).eq("id", id);
-    if (error) {
-      toast.error("আপডেট করতে সমস্যা হয়েছে");
-      return;
-    }
-    setExpenses((prev) => prev.map((e) => e.id === id ? { ...e, date, description, amount, month } : e));
-    toast.success("খরচ আপডেট করা হয়েছে");
-  }, []);
-
   const handleCloseMonth = useCallback(async () => {
     if (!user) return;
     // Save closed month snapshot
@@ -417,7 +398,6 @@ export default function Dashboard() {
           history={history.map((h) => ({ month: h.month, total_expenses: h.total_expenses }))}
           currentMonth={settings.currentMonth}
         />
-        <ExpenseList expenses={activeExpenses} onDelete={handleDeleteExpense} onEdit={handleEditExpense} />
 
         <Button variant="outline" onClick={handleDownloadPdf} className="gap-2">
           <FileDown className="h-4 w-4" />
