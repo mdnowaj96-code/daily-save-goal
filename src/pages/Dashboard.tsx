@@ -207,24 +207,6 @@ export default function Dashboard() {
     }
   }, [user, settings.currentMonth]);
 
-  const handleDeleteExpense = useCallback(async (id: string) => {
-    await supabase.from("expenses").delete().eq("id", id);
-    setExpenses((prev) => prev.filter((e) => e.id !== id));
-  }, []);
-
-  const handleEditExpense = useCallback(async (id: string, date: string, description: string, amount: number) => {
-    const month = date.substring(0, 7);
-    const { error } = await supabase.from("expenses").update({
-      date, description, amount, month,
-    }).eq("id", id);
-    if (error) {
-      toast.error("আপডেট করতে সমস্যা হয়েছে");
-      return;
-    }
-    setExpenses((prev) => prev.map((e) => e.id === id ? { ...e, date, description, amount, month } : e));
-    toast.success("খরচ আপডেট করা হয়েছে");
-  }, []);
-
   const handleCloseMonth = useCallback(async () => {
     if (!user) return;
     // Save closed month snapshot
