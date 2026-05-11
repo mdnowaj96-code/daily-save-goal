@@ -87,7 +87,7 @@ export function generatePdfReport(input: PdfReportInput): void {
         fmt(input.needsRemaining),
       ],
       [
-        "ইচ্ছা",
+        "হাত খরচ",
         `${input.wantsPercent.toLocaleString("bn-BD")}%`,
         fmt(input.wantsAmount),
         fmt(input.wantsRemaining),

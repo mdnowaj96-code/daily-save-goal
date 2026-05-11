@@ -366,7 +366,7 @@ export default function Dashboard() {
                       <div className="grid grid-cols-2 gap-2 text-xs">
                         <div className="flex justify-between"><span className="text-muted-foreground">মোট খরচ:</span><span className="font-medium text-destructive">৳{h.total_expenses.toLocaleString("bn-BD")}</span></div>
                         <div className="flex justify-between"><span className="text-muted-foreground">প্রয়োজন বাকি:</span><span className="font-medium">৳{h.needs_remaining.toLocaleString("bn-BD")}</span></div>
-                        <div className="flex justify-between"><span className="text-muted-foreground">ইচ্ছা বাকি:</span><span className="font-medium">৳{h.wants_remaining.toLocaleString("bn-BD")}</span></div>
+                        <div className="flex justify-between"><span className="text-muted-foreground">হাত খরচ বাকি:</span><span className="font-medium">৳{h.wants_remaining.toLocaleString("bn-BD")}</span></div>
                         <div className="flex justify-between"><span className="text-muted-foreground">সঞ্চয় বাকি:</span><span className="font-medium">৳{h.savings_remaining.toLocaleString("bn-BD")}</span></div>
                       </div>
                       <span className="text-[10px] text-primary mt-1">এডিট করতে ক্লিক করুন →</span>
@@ -400,7 +400,7 @@ export default function Dashboard() {
             subtitle={`বরাদ্দ: ৳${needsAmount.toLocaleString("bn-BD")}`}
           />
           <CircleBox
-            label="ইচ্ছা"
+            label="হাত খরচ"
             amount={wantsRemaining}
             percent={settings.wantsPercent}
             colorVar="wants"
