@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LabelList } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ExpenseList } from "@/components/ExpenseList";
@@ -47,6 +47,14 @@ const BN_MONTHS = [
   "জুলা", "আগ", "সেপ্টে", "অক্টো", "নভে", "ডিসে",
 ];
 
+const BN_MONTHS_FULL = [
+  "জানুয়ারি", "ফেব্রুয়ারি", "মার্চ", "এপ্রিল", "মে", "জুন",
+  "জুলাই", "আগস্ট", "সেপ্টেম্বর", "অক্টোবর", "নভেম্বর", "ডিসেম্বর",
+];
+
+const toBnDigits = (s: string | number) =>
+  String(s).replace(/[0-9]/g, (d) => "০১২৩৪৫৬৭৮৯"[+d]);
+
 export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteExpense, onEditExpense }: ExpenseChartsProps) {
   const [selectedMonth, setSelectedMonth] = useState<{ month: string; amount: number } | null>(null);
   // Daily expenses for current month
@@ -85,10 +93,11 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
 
     const keys = Object.keys(monthly).sort();
     return keys.map((key) => {
-      const [, mo] = key.split("-");
+      const [yr, mo] = key.split("-");
+      const shortYr = yr.slice(-2);
       return {
         key,
-        month: BN_MONTHS[parseInt(mo, 10) - 1],
+        month: `${BN_MONTHS_FULL[parseInt(mo, 10) - 1]},${toBnDigits(shortYr)}`,
         amount: monthly[key],
         isCurrent: key === currentMonth,
       };
@@ -169,27 +178,34 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
             ) : (
               <>
                 <ResponsiveContainer width="100%" height={220}>
-                  <BarChart data={monthlyData} margin={{ top: 10, right: 5, left: 0, bottom: 5 }}>
+                  <BarChart data={monthlyData} margin={{ top: 24, right: 5, left: 0, bottom: 5 }} barCategoryGap="35%">
                     <defs>
                       <linearGradient id="monthlyBarActive" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={1} />
-                        <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0.4} />
+                        <stop offset="0%" stopColor="hsl(210, 90%, 55%)" stopOpacity={1} />
+                        <stop offset="100%" stopColor="hsl(210, 90%, 45%)" stopOpacity={0.85} />
                       </linearGradient>
                       <linearGradient id="monthlyBarPast" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="hsl(var(--muted-foreground))" stopOpacity={0.7} />
-                        <stop offset="100%" stopColor="hsl(var(--muted-foreground))" stopOpacity={0.3} />
+                        <stop offset="0%" stopColor="hsl(215, 25%, 55%)" stopOpacity={0.95} />
+                        <stop offset="100%" stopColor="hsl(215, 25%, 45%)" stopOpacity={0.75} />
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                    <XAxis dataKey="month" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} />
+                    <XAxis dataKey="month" tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }} interval={0} />
                     <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} width={45} />
                     <Tooltip content={<CustomTooltip />} cursor={{ fill: "hsl(var(--muted) / 0.3)" }} />
                     <Bar
                       dataKey="amount"
                       radius={[6, 6, 0, 0]}
+                      maxBarSize={22}
                       onClick={(data: any) => setSelectedMonth({ month: data.month, amount: data.amount })}
                       style={{ cursor: "pointer" }}
                     >
+                      <LabelList
+                        dataKey="amount"
+                        position="top"
+                        formatter={(v: number) => `৳${v.toLocaleString("bn-BD")}`}
+                        style={{ fontSize: 9, fill: "hsl(var(--foreground))", fontWeight: 600 }}
+                      />
                       {monthlyData.map((entry, i) => (
                         <Cell
                           key={i}
