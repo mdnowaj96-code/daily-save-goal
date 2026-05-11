@@ -204,7 +204,7 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
                         dataKey="amount"
                         position="top"
                         formatter={(v: number) => `৳${v.toLocaleString("bn-BD")}`}
-                        style={{ fontSize: 9, fill: "hsl(var(--foreground))", fontWeight: 600 }}
+                        style={{ fontSize: 11, fill: "hsl(var(--foreground))", fontWeight: 700 }}
                       />
                       {monthlyData.map((entry, i) => (
                         <Cell
