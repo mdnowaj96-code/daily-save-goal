@@ -1,6 +1,5 @@
 import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
-import { notoSansBengaliBase64 } from "@/assets/fonts/notoSansBengali";
+import html2canvas from "html2canvas";
 
 export interface PdfExpense {
   date: string;
@@ -25,131 +24,190 @@ export interface PdfReportInput {
   expenses: PdfExpense[];
 }
 
-const FONT_NAME = "NotoSansBengali";
-const FONT_FILE = "NotoSansBengali.ttf";
+const fmt = (n: number) => `৳${Math.round(n).toLocaleString("bn-BD")}`;
+const pct = (n: number) => `${n.toLocaleString("bn-BD")}%`;
 
-const ensureFont = (doc: jsPDF) => {
-  // jsPDF instances are fresh; we register on each instance
-  doc.addFileToVFS(FONT_FILE, notoSansBengaliBase64);
-  doc.addFont(FONT_FILE, FONT_NAME, "normal");
-  doc.addFont(FONT_FILE, FONT_NAME, "bold");
-  doc.setFont(FONT_NAME, "normal");
+const ensureBengaliFont = async (): Promise<void> => {
+  // Ensure Noto Sans Bengali (Google Fonts) is loaded before rendering.
+  if (!document.getElementById("noto-bengali-pdf-font")) {
+    const link = document.createElement("link");
+    link.id = "noto-bengali-pdf-font";
+    link.rel = "stylesheet";
+    link.href =
+      "https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap";
+    document.head.appendChild(link);
+  }
+  try {
+    if ((document as any).fonts?.load) {
+      await Promise.all([
+        (document as any).fonts.load('400 14px "Noto Sans Bengali"'),
+        (document as any).fonts.load('700 16px "Noto Sans Bengali"'),
+      ]);
+      await (document as any).fonts.ready;
+    }
+  } catch {
+    // noop
+  }
 };
 
-const fmt = (n: number) => `৳${Math.round(n).toLocaleString("bn-BD")}`;
-const fmtDate = (d: string) =>
-  new Date(d).toLocaleDateString("bn-BD", { day: "numeric", month: "long", year: "numeric" });
+const buildReportHtml = (input: PdfReportInput): HTMLElement => {
+  const wrapper = document.createElement("div");
+  // A4-friendly width at 96dpi: ~794px; we render at 720 for safe margins.
+  wrapper.style.cssText = [
+    "position:fixed",
+    "top:-10000px",
+    "left:0",
+    "width:720px",
+    "padding:32px",
+    "background:#ffffff",
+    "color:#0f172a",
+    'font-family:"Noto Sans Bengali", system-ui, sans-serif',
+    "font-size:14px",
+    "line-height:1.6",
+    "box-sizing:border-box",
+    "-webkit-font-smoothing:antialiased",
+  ].join(";");
 
-export function generatePdfReport(input: PdfReportInput): void {
-  const doc = new jsPDF({ unit: "pt", format: "a4" });
-  ensureFont(doc);
+  const rows = [
+    {
+      name: "মোট বেতন",
+      percent: "১০০%",
+      allocated: fmt(input.salary),
+      spent: "—",
+      remaining: "—",
+      color: "#2563eb",
+    },
+    {
+      name: "প্রয়োজন",
+      percent: pct(input.needsPercent),
+      allocated: fmt(input.needsAmount),
+      spent: fmt(Math.max(0, input.needsAmount - input.needsRemaining)),
+      remaining: fmt(input.needsRemaining),
+      color: "#db2777",
+    },
+    {
+      name: "হাত খরচ",
+      percent: pct(input.wantsPercent),
+      allocated: fmt(input.wantsAmount),
+      spent: fmt(Math.max(0, input.wantsAmount - input.wantsRemaining)),
+      remaining: fmt(input.wantsRemaining),
+      color: "#f59e0b",
+    },
+    {
+      name: "সঞ্চয়",
+      percent: pct(input.savingsPercent),
+      allocated: fmt(input.savingsAmount),
+      spent: fmt(Math.max(0, input.savingsAmount - input.savingsRemaining)),
+      remaining: fmt(input.savingsRemaining),
+      color: "#10b981",
+    },
+  ];
 
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const margin = 40;
-  let y = margin;
+  const cellPad = "padding:10px 12px;";
+  const tbody = rows
+    .map(
+      (r) => `
+      <tr style="border-bottom:1px solid #e5e7eb;">
+        <td style="${cellPad}font-weight:600;color:${r.color};white-space:nowrap;">${r.name}</td>
+        <td style="${cellPad}text-align:center;white-space:nowrap;">${r.percent}</td>
+        <td style="${cellPad}text-align:right;white-space:nowrap;">${r.allocated}</td>
+        <td style="${cellPad}text-align:right;white-space:nowrap;">${r.spent}</td>
+        <td style="${cellPad}text-align:right;white-space:nowrap;font-weight:600;">${r.remaining}</td>
+      </tr>`
+    )
+    .join("");
 
-  // Header
-  doc.setFont(FONT_NAME, "bold");
-  doc.setFontSize(18);
-  doc.text("খরচের মাসিক রিপোর্ট", pageWidth / 2, y, { align: "center" });
-  y += 24;
+  wrapper.innerHTML = `
+    <div style="text-align:center;margin-bottom:20px;">
+      <div style="font-size:22px;font-weight:700;color:#1e3a8a;">খরচের মাসিক রিপোর্ট</div>
+      <div style="font-size:15px;color:#475569;margin-top:6px;">${input.monthLabel}</div>
+    </div>
 
-  doc.setFont(FONT_NAME, "normal");
-  doc.setFontSize(12);
-  doc.text(input.monthLabel, pageWidth / 2, y, { align: "center" });
-  y += 20;
+    <div style="font-size:17px;font-weight:700;color:#0f172a;margin:10px 0 12px;border-left:4px solid #2563eb;padding-left:10px;">
+      খাতওয়ারি হিসাব
+    </div>
 
-  // Summary block
-  doc.setDrawColor(220);
-  doc.setLineWidth(0.5);
-  doc.line(margin, y, pageWidth - margin, y);
-  y += 16;
+    <table style="width:100%;border-collapse:collapse;font-size:14px;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;">
+      <thead>
+        <tr style="background:#1e3a8a;color:#ffffff;">
+          <th style="${cellPad}text-align:left;font-weight:700;">খাত</th>
+          <th style="${cellPad}text-align:center;font-weight:700;">শতাংশ</th>
+          <th style="${cellPad}text-align:right;font-weight:700;">বরাদ্দ</th>
+          <th style="${cellPad}text-align:right;font-weight:700;">খরচ</th>
+          <th style="${cellPad}text-align:right;font-weight:700;">অবশিষ্ট</th>
+        </tr>
+      </thead>
+      <tbody>${tbody}</tbody>
+    </table>
 
-  doc.setFont(FONT_NAME, "bold");
-  doc.setFontSize(13);
-  doc.text("সারাংশ", margin, y);
-  y += 6;
+    <div style="margin-top:18px;padding:14px 16px;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;display:flex;justify-content:space-between;align-items:center;">
+      <span style="font-size:15px;font-weight:600;color:#991b1b;">মোট খরচ</span>
+      <span style="font-size:18px;font-weight:700;color:#b91c1c;">${fmt(input.totalExpenses)}</span>
+    </div>
 
-  // Summary table
-  autoTable(doc, {
-    startY: y + 4,
-    margin: { left: margin, right: margin },
-    styles: { font: FONT_NAME, fontSize: 10, cellPadding: 6 },
-    headStyles: { font: FONT_NAME, fontStyle: "bold", fillColor: [30, 90, 160], textColor: 255 },
-    bodyStyles: { font: FONT_NAME },
-    head: [["খাত", "শতাংশ", "বরাদ্দ", "অবশিষ্ট"]],
-    body: [
-      ["মোট বেতন", "১০০%", fmt(input.salary), "—"],
-      [
-        "প্রয়োজন",
-        `${input.needsPercent.toLocaleString("bn-BD")}%`,
-        fmt(input.needsAmount),
-        fmt(input.needsRemaining),
-      ],
-      [
-        "হাত খরচ",
-        `${input.wantsPercent.toLocaleString("bn-BD")}%`,
-        fmt(input.wantsAmount),
-        fmt(input.wantsRemaining),
-      ],
-      [
-        "সঞ্চয়",
-        `${input.savingsPercent.toLocaleString("bn-BD")}%`,
-        fmt(input.savingsAmount),
-        fmt(input.savingsRemaining),
-      ],
-    ],
-  });
+    <div style="margin-top:24px;text-align:center;font-size:11px;color:#94a3b8;">
+      তৈরি: ${new Date().toLocaleString("bn-BD")}
+    </div>
+  `;
 
-  y = (doc as any).lastAutoTable.finalY + 16;
+  return wrapper;
+};
 
-  // Total expenses highlight
-  doc.setFont(FONT_NAME, "bold");
-  doc.setFontSize(12);
-  doc.setTextColor(180, 30, 30);
-  doc.text(`মোট খরচ: ${fmt(input.totalExpenses)}`, margin, y);
-  doc.setTextColor(0);
-  y += 18;
+export async function generatePdfReport(input: PdfReportInput): Promise<void> {
+  await ensureBengaliFont();
 
-  // Expense list
-  doc.setFont(FONT_NAME, "bold");
-  doc.setFontSize(13);
-  doc.text("খরচের তালিকা", margin, y);
-  y += 4;
+  const node = buildReportHtml(input);
+  document.body.appendChild(node);
 
-  if (input.expenses.length === 0) {
-    doc.setFont(FONT_NAME, "normal");
-    doc.setFontSize(10);
-    doc.text("এই মাসে কোনো খরচ নেই।", margin, y + 16);
-  } else {
-    const sorted = [...input.expenses].sort((a, b) => a.date.localeCompare(b.date));
-    autoTable(doc, {
-      startY: y + 6,
-      margin: { left: margin, right: margin },
-      styles: { font: FONT_NAME, fontSize: 10, cellPadding: 5 },
-      headStyles: { font: FONT_NAME, fontStyle: "bold", fillColor: [30, 90, 160], textColor: 255 },
-      bodyStyles: { font: FONT_NAME },
-      head: [["তারিখ", "বিবরণ", "পরিমাণ"]],
-      body: sorted.map((e) => [fmtDate(e.date), e.description, fmt(e.amount)]),
-      columnStyles: {
-        0: { cellWidth: 130 },
-        2: { halign: "right", cellWidth: 90 },
-      },
-      foot: [["", "মোট", fmt(input.totalExpenses)]],
-      footStyles: { font: FONT_NAME, fontStyle: "bold", fillColor: [240, 240, 240], textColor: 0, halign: "right" },
+  try {
+    const canvas = await html2canvas(node, {
+      scale: 2,
+      backgroundColor: "#ffffff",
+      useCORS: true,
+      logging: false,
     });
-  }
 
-  // Footer with timestamp
-  const pageCount = doc.getNumberOfPages();
-  for (let i = 1; i <= pageCount; i++) {
-    doc.setPage(i);
-    doc.setFont(FONT_NAME, "normal");
-    doc.setFontSize(9);
-    doc.setTextColor(120);
-    const stamp = `তৈরি: ${new Date().toLocaleString("bn-BD")}  |  পৃষ্ঠা ${i.toLocaleString("bn-BD")} / ${pageCount.toLocaleString("bn-BD")}`;
-    doc.text(stamp, pageWidth / 2, doc.internal.pageSize.getHeight() - 20, { align: "center" });
-  }
+    const doc = new jsPDF({ unit: "pt", format: "a4", orientation: "portrait" });
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 24;
 
-  doc.save(`khoroch-report-${input.monthKey}.pdf`);
+    const imgWidth = pageWidth - margin * 2;
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+    const imgData = canvas.toDataURL("image/png");
+
+    if (imgHeight <= pageHeight - margin * 2) {
+      doc.addImage(imgData, "PNG", margin, margin, imgWidth, imgHeight);
+    } else {
+      // Slice into multiple pages if needed.
+      const pageContentHeightPx = ((pageHeight - margin * 2) * canvas.width) / imgWidth;
+      let renderedPx = 0;
+      while (renderedPx < canvas.height) {
+        const sliceHeightPx = Math.min(pageContentHeightPx, canvas.height - renderedPx);
+        const sliceCanvas = document.createElement("canvas");
+        sliceCanvas.width = canvas.width;
+        sliceCanvas.height = sliceHeightPx;
+        const ctx = sliceCanvas.getContext("2d");
+        if (ctx) {
+          ctx.fillStyle = "#ffffff";
+          ctx.fillRect(0, 0, sliceCanvas.width, sliceCanvas.height);
+          ctx.drawImage(
+            canvas,
+            0, renderedPx, canvas.width, sliceHeightPx,
+            0, 0, canvas.width, sliceHeightPx
+          );
+        }
+        const sliceData = sliceCanvas.toDataURL("image/png");
+        const sliceHeightPt = (sliceHeightPx * imgWidth) / canvas.width;
+        if (renderedPx > 0) doc.addPage();
+        doc.addImage(sliceData, "PNG", margin, margin, imgWidth, sliceHeightPt);
+        renderedPx += sliceHeightPx;
+      }
+    }
+
+    doc.save(`khoroch-report-${input.monthKey}.pdf`);
+  } finally {
+    document.body.removeChild(node);
+  }
 }

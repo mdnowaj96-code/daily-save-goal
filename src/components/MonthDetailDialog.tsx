@@ -156,7 +156,7 @@ export function MonthDetailDialog({
 
   const total = expenses.reduce((s, e) => s + e.amount, 0);
 
-  const handleDownloadPdf = () => {
+  const handleDownloadPdf = async () => {
     try {
       const needsAmount = (salary * needsPercent) / 100;
       const wantsAmount = (salary * wantsPercent) / 100;
@@ -165,7 +165,7 @@ export function MonthDetailDialog({
       const needsUsed = Math.min(rem, needsAmount); rem -= needsUsed;
       const wantsUsed = Math.min(rem, wantsAmount); rem -= wantsUsed;
       const savingsUsed = Math.min(rem, savingsAmount);
-      generatePdfReport({
+      await generatePdfReport({
         monthLabel,
         monthKey: month,
         salary,
