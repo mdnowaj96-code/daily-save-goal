@@ -291,9 +291,9 @@ export default function Dashboard() {
     toast.success(`${formatMonth(settings.currentMonth)} সফলভাবে ক্লোজ করা হয়েছে। নতুন মাসের বেতন ইনপুট দিন।`);
   }, [user, settings, totalExpenses, needsRemaining, wantsRemaining, savingsRemaining, updateSettings]);
 
-  const handleDownloadPdf = useCallback(() => {
+  const handleDownloadPdf = useCallback(async () => {
     try {
-      generatePdfReport({
+      await generatePdfReport({
         monthLabel: formatMonth(settings.currentMonth),
         monthKey: settings.currentMonth,
         salary: settings.salary,
