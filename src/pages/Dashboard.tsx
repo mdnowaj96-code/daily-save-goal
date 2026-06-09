@@ -86,6 +86,7 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState<MonthlyHistoryRecord | null>(null);
+  const [activeChart, setActiveChart] = useState<"daily" | "monthly" | "category">("daily");
 
   const reloadHistory = useCallback(async () => {
     if (!user) return;
@@ -293,20 +294,11 @@ export default function Dashboard() {
 
   const handleDownloadPdf = useCallback(async () => {
     try {
+      const view: "daily" | "category" = activeChart === "category" ? "category" : "daily";
       await generatePdfReport({
+        view,
         monthLabel: formatMonth(settings.currentMonth),
         monthKey: settings.currentMonth,
-        salary: settings.salary,
-        needsPercent: settings.needsPercent,
-        wantsPercent: settings.wantsPercent,
-        savingsPercent: settings.savingsPercent,
-        needsAmount,
-        wantsAmount,
-        savingsAmount,
-        needsRemaining,
-        wantsRemaining,
-        savingsRemaining,
-        totalExpenses,
         expenses: activeExpenses.map((e) => ({ date: e.date, description: e.description, amount: e.amount })),
       });
       toast.success("PDF রিপোর্ট ডাউনলোড হয়েছে");
@@ -314,7 +306,7 @@ export default function Dashboard() {
       console.error(e);
       toast.error("PDF তৈরি করতে সমস্যা হয়েছে");
     }
-  }, [settings, needsAmount, wantsAmount, savingsAmount, needsRemaining, wantsRemaining, savingsRemaining, totalExpenses, activeExpenses]);
+  }, [settings, activeExpenses, activeChart]);
 
   if (loading) {
     return (
@@ -424,6 +416,7 @@ export default function Dashboard() {
           currentMonth={settings.currentMonth}
           onDeleteExpense={handleDeleteExpense}
           onEditExpense={handleEditExpense}
+          onTabChange={(t) => setActiveChart(t as "daily" | "monthly" | "category")}
         />
 
         <Button variant="outline" onClick={handleDownloadPdf} className="gap-2">
