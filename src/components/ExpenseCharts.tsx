@@ -22,6 +22,7 @@ interface ExpenseChartsProps {
   currentMonth?: string;
   onDeleteExpense?: (id: string) => void;
   onEditExpense?: (id: string, date: string, description: string, amount: number) => void | Promise<void>;
+  onTabChange?: (tab: string) => void;
 }
 
 const COLORS = [
@@ -55,7 +56,7 @@ const BN_MONTHS_FULL = [
 const toBnDigits = (s: string | number) =>
   String(s).replace(/[0-9]/g, (d) => "০১২৩৪৫৬৭৮৯"[+d]);
 
-export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteExpense, onEditExpense }: ExpenseChartsProps) {
+export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteExpense, onEditExpense, onTabChange }: ExpenseChartsProps) {
   const [selectedMonth, setSelectedMonth] = useState<{ month: string; amount: number } | null>(null);
   // Daily expenses for current month
   const dailyData = useMemo(() => {
@@ -138,7 +139,7 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
         <CardTitle className="text-sm text-gradient-primary">খরচের বিশ্লেষণ</CardTitle>
       </CardHeader>
       <CardContent>
-        <Tabs defaultValue="daily" className="w-full">
+        <Tabs defaultValue="daily" className="w-full" onValueChange={onTabChange}>
           <TabsList className="w-full grid grid-cols-3 mb-4">
             <TabsTrigger value="daily" className="text-xs">দৈনিক</TabsTrigger>
             <TabsTrigger value="monthly" className="text-xs">মাসিক</TabsTrigger>
