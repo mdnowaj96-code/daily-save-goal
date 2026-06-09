@@ -8,24 +8,27 @@ export interface PdfExpense {
 }
 
 export interface PdfReportInput {
+  view: "daily" | "category";
   monthLabel: string;
   monthKey: string; // YYYY-MM
-  salary: number;
-  needsPercent: number;
-  wantsPercent: number;
-  savingsPercent: number;
-  needsAmount: number;
-  wantsAmount: number;
-  savingsAmount: number;
-  needsRemaining: number;
-  wantsRemaining: number;
-  savingsRemaining: number;
-  totalExpenses: number;
   expenses: PdfExpense[];
 }
 
 const fmt = (n: number) => `৳${Math.round(n).toLocaleString("bn-BD")}`;
-const pct = (n: number) => `${n.toLocaleString("bn-BD")}%`;
+const toBnDigits = (s: string | number) =>
+  String(s).replace(/[0-9]/g, (d) => "০১২৩৪৫৬৭৮৯"[+d]);
+
+const BN_MONTHS_FULL = [
+  "জানুয়ারি", "ফেব্রুয়ারি", "মার্চ", "এপ্রিল", "মে", "জুন",
+  "জুলাই", "আগস্ট", "সেপ্টেম্বর", "অক্টোবর", "নভেম্বর", "ডিসেম্বর",
+];
+
+const formatBnDate = (iso: string) => {
+  // iso: YYYY-MM-DD
+  const [, mo, d] = iso.split("-");
+  const monthName = BN_MONTHS_FULL[parseInt(mo, 10) - 1] ?? mo;
+  return `${toBnDigits(parseInt(d, 10))} ${monthName}`;
+};
 
 const ensureBengaliFont = async (): Promise<void> => {
   // Ensure Noto Sans Bengali (Google Fonts) is loaded before rendering.
@@ -41,6 +44,8 @@ const ensureBengaliFont = async (): Promise<void> => {
     if ((document as any).fonts?.load) {
       await Promise.all([
         (document as any).fonts.load('400 14px "Noto Sans Bengali"'),
+        (document as any).fonts.load('500 14px "Noto Sans Bengali"'),
+        (document as any).fonts.load('600 14px "Noto Sans Bengali"'),
         (document as any).fonts.load('700 16px "Noto Sans Bengali"'),
       ]);
       await (document as any).fonts.ready;
@@ -52,7 +57,6 @@ const ensureBengaliFont = async (): Promise<void> => {
 
 const buildReportHtml = (input: PdfReportInput): HTMLElement => {
   const wrapper = document.createElement("div");
-  // A4-friendly width at 96dpi: ~794px; we render at 720 for safe margins.
   wrapper.style.cssText = [
     "position:fixed",
     "top:-10000px",
@@ -68,54 +72,80 @@ const buildReportHtml = (input: PdfReportInput): HTMLElement => {
     "-webkit-font-smoothing:antialiased",
   ].join(";");
 
-  const rows = [
-    {
-      name: "মোট বেতন",
-      percent: "১০০%",
-      allocated: fmt(input.salary),
-      spent: "—",
-      remaining: "—",
-      color: "#2563eb",
-    },
-    {
-      name: "প্রয়োজন",
-      percent: pct(input.needsPercent),
-      allocated: fmt(input.needsAmount),
-      spent: fmt(Math.max(0, input.needsAmount - input.needsRemaining)),
-      remaining: fmt(input.needsRemaining),
-      color: "#db2777",
-    },
-    {
-      name: "হাত খরচ",
-      percent: pct(input.wantsPercent),
-      allocated: fmt(input.wantsAmount),
-      spent: fmt(Math.max(0, input.wantsAmount - input.wantsRemaining)),
-      remaining: fmt(input.wantsRemaining),
-      color: "#f59e0b",
-    },
-    {
-      name: "সঞ্চয়",
-      percent: pct(input.savingsPercent),
-      allocated: fmt(input.savingsAmount),
-      spent: fmt(Math.max(0, input.savingsAmount - input.savingsRemaining)),
-      remaining: fmt(input.savingsRemaining),
-      color: "#10b981",
-    },
-  ];
-
   const cellPad = "padding:10px 12px;";
-  const tbody = rows
-    .map(
-      (r) => `
-      <tr style="border-bottom:1px solid #e5e7eb;">
-        <td style="${cellPad}font-weight:600;color:${r.color};white-space:nowrap;">${r.name}</td>
-        <td style="${cellPad}text-align:center;white-space:nowrap;">${r.percent}</td>
-        <td style="${cellPad}text-align:right;white-space:nowrap;">${r.allocated}</td>
-        <td style="${cellPad}text-align:right;white-space:nowrap;">${r.spent}</td>
-        <td style="${cellPad}text-align:right;white-space:nowrap;font-weight:600;">${r.remaining}</td>
-      </tr>`
-    )
-    .join("");
+  const total = input.expenses.reduce((s, e) => s + e.amount, 0);
+
+  let sectionTitle = "";
+  let tableHtml = "";
+
+  if (input.view === "daily") {
+    sectionTitle = "দৈনিক খরচের তালিকা";
+    const sorted = [...input.expenses].sort((a, b) => a.date.localeCompare(b.date));
+    const tbody = sorted
+      .map(
+        (e, idx) => `
+        <tr style="border-bottom:1px solid #e5e7eb;background:${idx % 2 === 0 ? "#ffffff" : "#f8fafc"};">
+          <td style="${cellPad}white-space:nowrap;color:#475569;">${formatBnDate(e.date)}</td>
+          <td style="${cellPad}word-break:break-word;">${e.description}</td>
+          <td style="${cellPad}text-align:right;white-space:nowrap;font-weight:600;">${fmt(e.amount)}</td>
+        </tr>`
+      )
+      .join("");
+    tableHtml = `
+      <table style="width:100%;border-collapse:collapse;font-size:14px;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;table-layout:fixed;">
+        <colgroup>
+          <col style="width:22%" />
+          <col style="width:53%" />
+          <col style="width:25%" />
+        </colgroup>
+        <thead>
+          <tr style="background:#1e3a8a;color:#ffffff;">
+            <th style="${cellPad}text-align:left;font-weight:700;">তারিখ</th>
+            <th style="${cellPad}text-align:left;font-weight:700;">বিবরণ</th>
+            <th style="${cellPad}text-align:right;font-weight:700;">পরিমাণ</th>
+          </tr>
+        </thead>
+        <tbody>${tbody || `<tr><td colspan="3" style="${cellPad}text-align:center;color:#64748b;">কোনো খরচ নেই</td></tr>`}</tbody>
+      </table>`;
+  } else {
+    sectionTitle = "খাতওয়ারি খরচের তালিকা";
+    const cats: Record<string, { name: string; value: number }> = {};
+    input.expenses.forEach((e) => {
+      const normalized = e.description.trim().replace(/\s+/g, " ");
+      const key = normalized.toLowerCase();
+      if (!cats[key]) cats[key] = { name: normalized, value: 0 };
+      cats[key].value += e.amount;
+    });
+    const list = Object.values(cats).sort((a, b) => b.value - a.value);
+    const tbody = list
+      .map((c, idx) => {
+        const pctNum = total > 0 ? (c.value / total) * 100 : 0;
+        const pctStr = `${toBnDigits(pctNum.toFixed(1))}%`;
+        return `
+        <tr style="border-bottom:1px solid #e5e7eb;background:${idx % 2 === 0 ? "#ffffff" : "#f8fafc"};">
+          <td style="${cellPad}word-break:break-word;">${c.name}</td>
+          <td style="${cellPad}text-align:center;white-space:nowrap;color:#475569;">${pctStr}</td>
+          <td style="${cellPad}text-align:right;white-space:nowrap;font-weight:600;">${fmt(c.value)}</td>
+        </tr>`;
+      })
+      .join("");
+    tableHtml = `
+      <table style="width:100%;border-collapse:collapse;font-size:14px;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;table-layout:fixed;">
+        <colgroup>
+          <col style="width:55%" />
+          <col style="width:20%" />
+          <col style="width:25%" />
+        </colgroup>
+        <thead>
+          <tr style="background:#1e3a8a;color:#ffffff;">
+            <th style="${cellPad}text-align:left;font-weight:700;">খাত</th>
+            <th style="${cellPad}text-align:center;font-weight:700;">শতাংশ</th>
+            <th style="${cellPad}text-align:right;font-weight:700;">পরিমাণ</th>
+          </tr>
+        </thead>
+        <tbody>${tbody || `<tr><td colspan="3" style="${cellPad}text-align:center;color:#64748b;">কোনো খরচ নেই</td></tr>`}</tbody>
+      </table>`;
+  }
 
   wrapper.innerHTML = `
     <div style="text-align:center;margin-bottom:20px;">
@@ -124,25 +154,14 @@ const buildReportHtml = (input: PdfReportInput): HTMLElement => {
     </div>
 
     <div style="font-size:17px;font-weight:700;color:#0f172a;margin:10px 0 12px;border-left:4px solid #2563eb;padding-left:10px;">
-      খাতওয়ারি হিসাব
+      ${sectionTitle}
     </div>
 
-    <table style="width:100%;border-collapse:collapse;font-size:14px;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;">
-      <thead>
-        <tr style="background:#1e3a8a;color:#ffffff;">
-          <th style="${cellPad}text-align:left;font-weight:700;">খাত</th>
-          <th style="${cellPad}text-align:center;font-weight:700;">শতাংশ</th>
-          <th style="${cellPad}text-align:right;font-weight:700;">বরাদ্দ</th>
-          <th style="${cellPad}text-align:right;font-weight:700;">খরচ</th>
-          <th style="${cellPad}text-align:right;font-weight:700;">অবশিষ্ট</th>
-        </tr>
-      </thead>
-      <tbody>${tbody}</tbody>
-    </table>
+    ${tableHtml}
 
     <div style="margin-top:18px;padding:14px 16px;background:#fef2f2;border:1px solid #fecaca;border-radius:8px;display:flex;justify-content:space-between;align-items:center;">
       <span style="font-size:15px;font-weight:600;color:#991b1b;">মোট খরচ</span>
-      <span style="font-size:18px;font-weight:700;color:#b91c1c;">${fmt(input.totalExpenses)}</span>
+      <span style="font-size:18px;font-weight:700;color:#b91c1c;">${fmt(total)}</span>
     </div>
 
     <div style="margin-top:24px;text-align:center;font-size:11px;color:#94a3b8;">
