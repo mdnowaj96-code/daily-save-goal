@@ -158,27 +158,10 @@ export function MonthDetailDialog({
 
   const handleDownloadPdf = async () => {
     try {
-      const needsAmount = (salary * needsPercent) / 100;
-      const wantsAmount = (salary * wantsPercent) / 100;
-      const savingsAmount = (salary * savingsPercent) / 100;
-      let rem = total;
-      const needsUsed = Math.min(rem, needsAmount); rem -= needsUsed;
-      const wantsUsed = Math.min(rem, wantsAmount); rem -= wantsUsed;
-      const savingsUsed = Math.min(rem, savingsAmount);
       await generatePdfReport({
+        view: "daily",
         monthLabel,
         monthKey: month,
-        salary,
-        needsPercent,
-        wantsPercent,
-        savingsPercent,
-        needsAmount,
-        wantsAmount,
-        savingsAmount,
-        needsRemaining: Math.max(0, needsAmount - needsUsed),
-        wantsRemaining: Math.max(0, wantsAmount - wantsUsed),
-        savingsRemaining: Math.max(0, savingsAmount - savingsUsed),
-        totalExpenses: total,
         expenses: expenses.map((e) => ({ date: e.date, description: e.description, amount: e.amount })),
       });
       toast.success("PDF রিপোর্ট ডাউনলোড হয়েছে");
