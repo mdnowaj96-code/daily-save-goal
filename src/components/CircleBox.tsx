@@ -13,7 +13,7 @@ interface CircleBoxProps {
   remainingPercent?: number;
 }
 
-export function CircleBox({ label, amount, percent, colorVar, onEdit, subtitle }: CircleBoxProps) {
+export function CircleBox({ label, amount, percent, colorVar, onEdit, subtitle, remainingPercent }: CircleBoxProps) {
   const [editing, setEditing] = useState(false);
   const [editValue, setEditValue] = useState(String(amount));
 
@@ -25,21 +25,30 @@ export function CircleBox({ label, amount, percent, colorVar, onEdit, subtitle }
     setEditing(false);
   };
 
+  const fillPercent = remainingPercent ?? percent ?? 100;
+  const ratio = Math.max(0, Math.min(1, fillPercent / 100));
+  const isEmpty = ratio <= 0;
+
   const circumference = 2 * Math.PI * 54;
-  const strokeDashoffset = circumference - (circumference * (percent ?? 100)) / 100;
+  const strokeDashoffset = circumference - (circumference * fillPercent) / 100;
   const gradId = `grad-${colorVar}`;
+
+  const stop1Opacity = isEmpty ? 1 : ratio;
+  const stop2Opacity = isEmpty ? 1 : ratio * 0.55;
+
+  const strokeColor = isEmpty ? "hsl(var(--muted-foreground))" : `url(#${gradId})`;
 
   return (
     <div className="flex flex-col items-center gap-1.5 animate-fade-in">
       <div
         className="relative w-28 h-28 sm:w-32 sm:h-32 rounded-full"
-        style={{ filter: `drop-shadow(0 6px 18px hsl(var(--${colorVar}) / 0.30))` }}
+        style={{ filter: `drop-shadow(0 6px 18px hsl(var(--${colorVar}) / ${0.30 * ratio}))` }}
       >
         <svg className="w-full h-full -rotate-90" viewBox="0 0 120 120">
           <defs>
             <linearGradient id={gradId} x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor={`hsl(var(--${colorVar}))`} stopOpacity="1" />
-              <stop offset="100%" stopColor={`hsl(var(--${colorVar}))`} stopOpacity="0.55" />
+              <stop offset="0%" stopColor={`hsl(var(--${colorVar}))`} stopOpacity={stop1Opacity} />
+              <stop offset="100%" stopColor={`hsl(var(--${colorVar}))`} stopOpacity={stop2Opacity} />
             </linearGradient>
           </defs>
           <circle cx="60" cy="60" r="54" fill="hsl(var(--card))" stroke="hsl(var(--muted))" strokeWidth="6" />
@@ -48,7 +57,7 @@ export function CircleBox({ label, amount, percent, colorVar, onEdit, subtitle }
             cy="60"
             r="54"
             fill="none"
-            stroke={`url(#${gradId})`}
+            stroke={strokeColor}
             strokeWidth="9"
             strokeLinecap="round"
             strokeDasharray={circumference}
@@ -76,7 +85,9 @@ export function CircleBox({ label, amount, percent, colorVar, onEdit, subtitle }
               <span className="text-sm sm:text-base font-bold text-foreground">
                 ৳{amount.toLocaleString("bn-BD")}
               </span>
-              {percent !== undefined && (
+              {remainingPercent !== undefined ? (
+                <span className="text-[10px] text-muted-foreground">{Math.round(remainingPercent)}%</span>
+              ) : percent !== undefined && (
                 <span className="text-[10px] text-muted-foreground">{percent}%</span>
               )}
             </>
