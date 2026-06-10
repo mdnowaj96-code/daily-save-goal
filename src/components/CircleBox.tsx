@@ -10,6 +10,7 @@ interface CircleBoxProps {
   colorVar: string;
   onEdit?: (value: number) => void;
   subtitle?: string;
+  remainingPercent?: number;
 }
 
 export function CircleBox({ label, amount, percent, colorVar, onEdit, subtitle }: CircleBoxProps) {
