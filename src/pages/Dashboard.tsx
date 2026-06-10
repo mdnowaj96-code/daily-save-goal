@@ -391,6 +391,7 @@ export default function Dashboard() {
             label="প্রয়োজন"
             amount={needsRemaining}
             percent={settings.needsPercent}
+            remainingPercent={needsRemainingPercent}
             colorVar="needs"
             onEdit={(val) => updateSettings({ ...settings, needsPercent: Math.min(100, Math.max(0, val)) })}
             subtitle={`বরাদ্দ: ৳${needsAmount.toLocaleString("bn-BD")}`}
@@ -399,6 +400,7 @@ export default function Dashboard() {
             label="হাত খরচ"
             amount={wantsRemaining}
             percent={settings.wantsPercent}
+            remainingPercent={wantsRemainingPercent}
             colorVar="wants"
             onEdit={(val) => updateSettings({ ...settings, wantsPercent: Math.min(100, Math.max(0, val)) })}
             subtitle={`বরাদ্দ: ৳${wantsAmount.toLocaleString("bn-BD")}`}
@@ -407,6 +409,7 @@ export default function Dashboard() {
             label="সঞ্চয়"
             amount={savingsRemaining}
             percent={settings.savingsPercent}
+            remainingPercent={savingsRemainingPercent}
             colorVar="savings"
             onEdit={(val) => updateSettings({ ...settings, savingsPercent: Math.min(100, Math.max(0, val)) })}
             subtitle={`বরাদ্দ: ৳${savingsAmount.toLocaleString("bn-BD")}`}
