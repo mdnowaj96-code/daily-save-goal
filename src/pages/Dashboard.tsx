@@ -194,6 +194,10 @@ export default function Dashboard() {
   const wantsRemaining = Math.max(0, wantsAmount - wantsUsed);
   const savingsRemaining = Math.max(0, savingsAmount - savingsUsed);
 
+  const needsRemainingPercent = needsAmount > 0 ? (needsRemaining / needsAmount) * 100 : 0;
+  const wantsRemainingPercent = wantsAmount > 0 ? (wantsRemaining / wantsAmount) * 100 : 0;
+  const savingsRemainingPercent = savingsAmount > 0 ? (savingsRemaining / savingsAmount) * 100 : 0;
+
   const handleAddExpense = useCallback(async (date: string, description: string, amount: number) => {
     if (!user) return;
     const month = settings.currentMonth;
