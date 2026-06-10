@@ -194,6 +194,10 @@ export default function Dashboard() {
   const wantsRemaining = Math.max(0, wantsAmount - wantsUsed);
   const savingsRemaining = Math.max(0, savingsAmount - savingsUsed);
 
+  const needsRemainingPercent = needsAmount > 0 ? (needsRemaining / needsAmount) * 100 : 0;
+  const wantsRemainingPercent = wantsAmount > 0 ? (wantsRemaining / wantsAmount) * 100 : 0;
+  const savingsRemainingPercent = savingsAmount > 0 ? (savingsRemaining / savingsAmount) * 100 : 0;
+
   const handleAddExpense = useCallback(async (date: string, description: string, amount: number) => {
     if (!user) return;
     const month = settings.currentMonth;
@@ -387,6 +391,7 @@ export default function Dashboard() {
             label="প্রয়োজন"
             amount={needsRemaining}
             percent={settings.needsPercent}
+            remainingPercent={needsRemainingPercent}
             colorVar="needs"
             onEdit={(val) => updateSettings({ ...settings, needsPercent: Math.min(100, Math.max(0, val)) })}
             subtitle={`বরাদ্দ: ৳${needsAmount.toLocaleString("bn-BD")}`}
@@ -395,6 +400,7 @@ export default function Dashboard() {
             label="হাত খরচ"
             amount={wantsRemaining}
             percent={settings.wantsPercent}
+            remainingPercent={wantsRemainingPercent}
             colorVar="wants"
             onEdit={(val) => updateSettings({ ...settings, wantsPercent: Math.min(100, Math.max(0, val)) })}
             subtitle={`বরাদ্দ: ৳${wantsAmount.toLocaleString("bn-BD")}`}
@@ -403,6 +409,7 @@ export default function Dashboard() {
             label="সঞ্চয়"
             amount={savingsRemaining}
             percent={settings.savingsPercent}
+            remainingPercent={savingsRemainingPercent}
             colorVar="savings"
             onEdit={(val) => updateSettings({ ...settings, savingsPercent: Math.min(100, Math.max(0, val)) })}
             subtitle={`বরাদ্দ: ৳${savingsAmount.toLocaleString("bn-BD")}`}
