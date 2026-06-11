@@ -85,9 +85,7 @@ export function CircleBox({ label, amount, percent, colorVar, onEdit, subtitle, 
               <span className="text-sm sm:text-base font-bold text-foreground">
                 ৳{amount.toLocaleString("bn-BD")}
               </span>
-              {remainingPercent !== undefined ? (
-                <span className="text-[10px] text-muted-foreground">{Math.round(remainingPercent)}%</span>
-              ) : percent !== undefined && (
+              {percent !== undefined && (
                 <span className="text-[10px] text-muted-foreground">{percent}%</span>
               )}
             </>
