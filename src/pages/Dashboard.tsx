@@ -375,24 +375,53 @@ export default function Dashboard() {
               ) : (
                 <div className="flex flex-col gap-3">
                   {history.map((h) => (
-                    <button
+                    <div
                       key={h.id}
-                      type="button"
-                      onClick={() => { setSelectedMonth(h); setHistoryOpen(false); }}
-                      className="text-left rounded-lg border bg-card p-3 flex flex-col gap-2 hover:bg-accent/10 hover:border-primary/40 transition-colors"
+                      className="rounded-lg border bg-card p-3 flex flex-col gap-2 hover:bg-accent/10 hover:border-primary/40 transition-colors"
                     >
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-bold text-foreground">{formatMonth(h.month)}</span>
-                        <span className="text-xs text-muted-foreground">বেতন: ৳{h.salary.toLocaleString("bn-BD")}</span>
+                      <button
+                        type="button"
+                        onClick={() => { setSelectedMonth(h); setHistoryOpen(false); }}
+                        className="text-left flex flex-col gap-2 w-full"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-bold text-foreground">{formatMonth(h.month)}</span>
+                          <span className="text-xs text-muted-foreground">বেতন: ৳{h.salary.toLocaleString("bn-BD")}</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                          <div className="flex justify-between"><span className="text-muted-foreground">মোট খরচ:</span><span className="font-medium text-destructive">৳{h.total_expenses.toLocaleString("bn-BD")}</span></div>
+                          <div className="flex justify-between"><span className="text-muted-foreground">প্রয়োজন বাকি:</span><span className="font-medium">৳{h.needs_remaining.toLocaleString("bn-BD")}</span></div>
+                          <div className="flex justify-between"><span className="text-muted-foreground">হাত খরচ বাকি:</span><span className="font-medium">৳{h.wants_remaining.toLocaleString("bn-BD")}</span></div>
+                          <div className="flex justify-between"><span className="text-muted-foreground">সঞ্চয় বাকি:</span><span className="font-medium">৳{h.savings_remaining.toLocaleString("bn-BD")}</span></div>
+                        </div>
+                      </button>
+                      <div className="flex gap-2 mt-1">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="flex-1 gap-1 h-7 text-xs"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDownloadHistoryPdf(h.month, formatMonth(h.month), "daily");
+                          }}
+                        >
+                          <FileDown className="h-3 w-3" />
+                          দৈনিক PDF
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="flex-1 gap-1 h-7 text-xs"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDownloadHistoryPdf(h.month, formatMonth(h.month), "category");
+                          }}
+                        >
+                          <FileDown className="h-3 w-3" />
+                          খাতওয়ারি PDF
+                        </Button>
                       </div>
-                      <div className="grid grid-cols-2 gap-2 text-xs">
-                        <div className="flex justify-between"><span className="text-muted-foreground">মোট খরচ:</span><span className="font-medium text-destructive">৳{h.total_expenses.toLocaleString("bn-BD")}</span></div>
-                        <div className="flex justify-between"><span className="text-muted-foreground">প্রয়োজন বাকি:</span><span className="font-medium">৳{h.needs_remaining.toLocaleString("bn-BD")}</span></div>
-                        <div className="flex justify-between"><span className="text-muted-foreground">হাত খরচ বাকি:</span><span className="font-medium">৳{h.wants_remaining.toLocaleString("bn-BD")}</span></div>
-                        <div className="flex justify-between"><span className="text-muted-foreground">সঞ্চয় বাকি:</span><span className="font-medium">৳{h.savings_remaining.toLocaleString("bn-BD")}</span></div>
-                      </div>
-                      <span className="text-[10px] text-primary mt-1">এডিট করতে ক্লিক করুন →</span>
-                    </button>
+                    </div>
                   ))}
                 </div>
               )}
