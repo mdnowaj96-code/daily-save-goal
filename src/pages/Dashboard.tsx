@@ -312,6 +312,32 @@ export default function Dashboard() {
     }
   }, [settings, activeExpenses, activeChart]);
 
+  const handleDownloadHistoryPdf = useCallback(async (month: string, monthLabel: string, view: "daily" | "category") => {
+    try {
+      const { data } = await supabase
+        .from("expenses")
+        .select("date, description, amount")
+        .eq("user_id", user?.id)
+        .eq("month", month)
+        .order("date", { ascending: true });
+      const expenses = (data || []).map((e: any) => ({
+        date: e.date,
+        description: e.description,
+        amount: Number(e.amount),
+      }));
+      await generatePdfReport({
+        view,
+        monthLabel,
+        monthKey: month,
+        expenses,
+      });
+      toast.success("PDF রিপোর্ট ডাউনলোড হয়েছে");
+    } catch (e) {
+      console.error(e);
+      toast.error("PDF তৈরি করতে সমস্যা হয়েছে");
+    }
+  }, [user]);
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
