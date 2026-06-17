@@ -167,10 +167,10 @@ export function MonthDetailDialog({
 
   const total = expenses.reduce((s, e) => s + e.amount, 0);
 
-  const handleDownloadPdf = async () => {
+  const handleDownloadPdf = async (view: "daily" | "category") => {
     try {
       await generatePdfReport({
-        view: "daily",
+        view,
         monthLabel,
         monthKey: month,
         expenses: expenses.map((e) => ({ date: e.date, description: e.description, amount: e.amount })),
@@ -194,10 +194,16 @@ export function MonthDetailDialog({
           <span className="font-bold text-destructive">৳{total.toLocaleString("bn-BD")}</span>
         </div>
 
-        <Button size="sm" variant="outline" onClick={handleDownloadPdf} className="gap-1.5 h-8">
-          <FileDown className="h-3.5 w-3.5" />
-          এই মাসের PDF রিপোর্ট
-        </Button>
+        <div className="flex gap-2">
+          <Button size="sm" variant="outline" onClick={() => handleDownloadPdf("daily")} className="gap-1.5 h-8 flex-1">
+            <FileDown className="h-3.5 w-3.5" />
+            দৈনিক PDF
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => handleDownloadPdf("category")} className="gap-1.5 h-8 flex-1">
+            <FileDown className="h-3.5 w-3.5" />
+            খাতওয়ারি PDF
+          </Button>
+        </div>
 
         {/* Add new */}
         <div className="rounded-lg border bg-card p-3 flex flex-col gap-2">
