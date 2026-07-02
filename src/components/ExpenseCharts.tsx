@@ -23,6 +23,7 @@ interface ExpenseChartsProps {
   onDeleteExpense?: (id: string) => void;
   onEditExpense?: (id: string, date: string, description: string, amount: number) => void | Promise<void>;
   onTabChange?: (tab: string) => void;
+  salary?: number;
 }
 
 const COLORS = [
@@ -56,7 +57,7 @@ const BN_MONTHS_FULL = [
 const toBnDigits = (s: string | number) =>
   String(s).replace(/[0-9]/g, (d) => "০১২৩৪৫৬৭৮৯"[+d]);
 
-export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteExpense, onEditExpense, onTabChange }: ExpenseChartsProps) {
+export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteExpense, onEditExpense, onTabChange, salary }: ExpenseChartsProps) {
   const [selectedMonth, setSelectedMonth] = useState<{ month: string; amount: number } | null>(null);
   // Daily expenses for current month
   const dailyData = useMemo(() => {
@@ -168,6 +169,7 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
                   expenses={expenses}
                   onDelete={onDeleteExpense}
                   onEdit={onEditExpense}
+                  salary={salary}
                 />
               </div>
             )}
