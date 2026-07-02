@@ -169,6 +169,7 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
                   expenses={expenses}
                   onDelete={onDeleteExpense}
                   onEdit={onEditExpense}
+                  salary={salary}
                 />
               </div>
             )}
