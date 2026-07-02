@@ -550,6 +550,7 @@ export default function Dashboard() {
           onDeleteExpense={handleDeleteExpense}
           onEditExpense={handleEditExpense}
           onTabChange={(t) => setActiveChart(t as "daily" | "monthly" | "category")}
+          salary={settings.salary}
         />
 
         <Button variant="outline" onClick={handleDownloadPdf} className="gap-2">
