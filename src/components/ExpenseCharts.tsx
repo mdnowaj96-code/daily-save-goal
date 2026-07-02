@@ -57,7 +57,7 @@ const BN_MONTHS_FULL = [
 const toBnDigits = (s: string | number) =>
   String(s).replace(/[0-9]/g, (d) => "০১২৩৪৫৬৭৮৯"[+d]);
 
-export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteExpense, onEditExpense, onTabChange }: ExpenseChartsProps) {
+export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteExpense, onEditExpense, onTabChange, salary }: ExpenseChartsProps) {
   const [selectedMonth, setSelectedMonth] = useState<{ month: string; amount: number } | null>(null);
   // Daily expenses for current month
   const dailyData = useMemo(() => {
