@@ -144,9 +144,16 @@ export function ExpenseList({ expenses, onDelete, onEdit, salary = 0 }: ExpenseL
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex items-center justify-between px-1">
-        <h3 className="text-sm font-semibold text-foreground">খরচের তালিকা</h3>
-        <span className="text-sm font-bold text-destructive">মোট: ৳{totalExpenses.toLocaleString("bn-BD")}</span>
+      <div className="flex flex-col items-end px-1 gap-0.5">
+        <div className="flex items-center justify-between w-full">
+          <h3 className="text-sm font-semibold text-foreground">খরচের তালিকা</h3>
+          <span className="text-sm font-bold text-destructive">মোট: ৳{totalExpenses.toLocaleString("bn-BD")}</span>
+        </div>
+        {salary > 0 && totalExpenses > salary && (
+          <span className="text-xs font-semibold text-destructive">
+            অতিরিক্ত খরচ: ৳{(totalExpenses - salary).toLocaleString("bn-BD")}
+          </span>
+        )}
       </div>
 
       {sortedDates.length === 0 && (
