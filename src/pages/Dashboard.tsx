@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { LogOut, Loader2, CalendarCheck, History, FileDown } from "lucide-react";
+import { Search, X } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -87,6 +89,7 @@ export default function Dashboard() {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [selectedMonth, setSelectedMonth] = useState<MonthlyHistoryRecord | null>(null);
   const [activeChart, setActiveChart] = useState<"daily" | "monthly" | "category">("daily");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const reloadHistory = useCallback(async () => {
     if (!user) return;
@@ -114,6 +117,21 @@ export default function Dashboard() {
       setSelectedMonth((prev) => prev ? mapped.find((m) => m.month === prev.month) ?? null : null);
     }
   }, [user]);
+
+  // Search results across current month + history
+  const searchResults = (() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return [] as Array<Expense & { monthLabel: string; isCurrent: boolean }>;
+    return expenses
+      .filter((e) => e.description.toLowerCase().includes(q))
+      .sort((a, b) => b.date.localeCompare(a.date))
+      .map((e) => ({
+        ...e,
+        monthLabel: formatMonth(e.month),
+        isCurrent: e.month === settings.currentMonth,
+      }));
+  })();
+  const searchTotal = searchResults.reduce((s, e) => s + e.amount, 0);
 
   // Load data
   useEffect(() => {
@@ -434,6 +452,59 @@ export default function Dashboard() {
       </header>
 
       <main className="max-w-2xl mx-auto px-4 py-6 flex flex-col gap-6">
+        <div className="flex flex-col gap-2">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+            <Input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="খরচ খুঁজুন (বর্তমান মাস ও ইতিহাসসহ)..."
+              className="pl-9 pr-9"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery("")}
+                className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 rounded-md flex items-center justify-center text-muted-foreground hover:bg-muted"
+                aria-label="সার্চ মুছুন"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+          {searchQuery.trim() && (
+            <div className="rounded-xl border border-border/60 gradient-card shadow-soft overflow-hidden">
+              <div className="flex items-center justify-between px-4 py-2 bg-muted/40 border-b border-border/40">
+                <span className="text-xs font-semibold text-foreground">
+                  সার্চ ফলাফল ({searchResults.length.toLocaleString("bn-BD")})
+                </span>
+                <span className="text-xs font-bold text-destructive">মোট: ৳{searchTotal.toLocaleString("bn-BD")}</span>
+              </div>
+              {searchResults.length === 0 ? (
+                <p className="text-center text-sm text-muted-foreground py-6">কোনো ফলাফল পাওয়া যায়নি</p>
+              ) : (
+                <div className="max-h-80 overflow-y-auto divide-y">
+                  {searchResults.map((e) => (
+                    <div key={e.id} className="px-4 py-2.5 flex items-center justify-between gap-2">
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-sm text-foreground truncate">{e.description}</span>
+                        <span className="text-[10px] text-muted-foreground">
+                          {new Date(e.date).toLocaleDateString("bn-BD", { day: "numeric", month: "long", year: "numeric" })}
+                          {" · "}
+                          <span className={e.isCurrent ? "text-primary font-medium" : ""}>
+                            {e.isCurrent ? "বর্তমান মাস" : e.monthLabel}
+                          </span>
+                        </span>
+                      </div>
+                      <span className="text-sm font-semibold text-foreground shrink-0">৳{e.amount.toLocaleString("bn-BD")}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 justify-items-center">
           <CircleBox
             label="মোট বেতন"
