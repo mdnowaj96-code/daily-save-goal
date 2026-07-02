@@ -23,6 +23,7 @@ interface ExpenseChartsProps {
   onDeleteExpense?: (id: string) => void;
   onEditExpense?: (id: string, date: string, description: string, amount: number) => void | Promise<void>;
   onTabChange?: (tab: string) => void;
+  salary?: number;
 }
 
 const COLORS = [
