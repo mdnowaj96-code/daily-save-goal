@@ -29,7 +29,7 @@ interface ExpenseListProps {
   salary?: number;
 }
 
-export function ExpenseList({ expenses, onDelete, onEdit }: ExpenseListProps) {
+export function ExpenseList({ expenses, onDelete, onEdit, salary = 0 }: ExpenseListProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editDate, setEditDate] = useState("");
   const [editDesc, setEditDesc] = useState("");
