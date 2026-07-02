@@ -26,6 +26,7 @@ interface ExpenseListProps {
   expenses: Expense[];
   onDelete: (id: string) => void;
   onEdit?: (id: string, date: string, description: string, amount: number) => void | Promise<void>;
+  salary?: number;
 }
 
 export function ExpenseList({ expenses, onDelete, onEdit }: ExpenseListProps) {
