@@ -63,6 +63,7 @@ const toBnDigits = (s: string | number) =>
 export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteExpense, onEditExpense, onTabChange, salary }: ExpenseChartsProps) {
   const [selectedMonth, setSelectedMonth] = useState<{ month: string; amount: number } | null>(null);
   const [openCategory, setOpenCategory] = useState<string | null>(null);
+  const [selectedDay, setSelectedDay] = useState<{ day: number; amount: number } | null>(null);
   // Daily expenses for current month
   const dailyData = useMemo(() => {
     const now = new Date();
