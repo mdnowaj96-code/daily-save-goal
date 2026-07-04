@@ -14,6 +14,7 @@ export const EXPENSE_CATEGORIES: ExpenseCategory[] = [
   { key: "উপহার", label: "উপহার", emoji: "🎁" },
   { key: "মোবাইল/ইন্টারনেট", label: "মোবাইল/ইন্টারনেট", emoji: "📱" },
   { key: "শিক্ষা", label: "শিক্ষা", emoji: "📚" },
+  { key: "ঋণ পরিশোধ", label: "ঋণ পরিশোধ", emoji: "💲" },
   { key: "অন্যান্য", label: "অন্যান্য", emoji: "💱" },
 ];
 
