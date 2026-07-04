@@ -164,7 +164,16 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
                 <XAxis dataKey="day" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} interval="preserveStartEnd" />
                 <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} width={45} />
                 <Tooltip content={<CustomTooltip />} />
-                <Bar dataKey="amount" fill="url(#dailyBar)" radius={[6, 6, 0, 0]} />
+                <Bar
+                  dataKey="amount"
+                  fill="url(#dailyBar)"
+                  radius={[6, 6, 0, 0]}
+                  style={{ cursor: "pointer" }}
+                  onClick={(data: any) => {
+                    const day = parseInt(data.day, 10);
+                    setSelectedDay((prev) => (prev?.day === day ? null : { day, amount: data.amount }));
+                  }}
+                />
               </BarChart>
             </ResponsiveContainer>
             {onDeleteExpense && expenses.length > 0 && (
