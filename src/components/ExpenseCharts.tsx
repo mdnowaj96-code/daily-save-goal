@@ -63,6 +63,7 @@ const toBnDigits = (s: string | number) =>
 export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteExpense, onEditExpense, onTabChange, salary }: ExpenseChartsProps) {
   const [selectedMonth, setSelectedMonth] = useState<{ month: string; amount: number } | null>(null);
   const [openCategory, setOpenCategory] = useState<string | null>(null);
+  const [selectedDay, setSelectedDay] = useState<{ day: number; amount: number } | null>(null);
   // Daily expenses for current month
   const dailyData = useMemo(() => {
     const now = new Date();
@@ -163,9 +164,59 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
                 <XAxis dataKey="day" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} interval="preserveStartEnd" />
                 <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} width={45} />
                 <Tooltip content={<CustomTooltip />} />
-                <Bar dataKey="amount" fill="url(#dailyBar)" radius={[6, 6, 0, 0]} />
+                <Bar
+                  dataKey="amount"
+                  fill="url(#dailyBar)"
+                  radius={[6, 6, 0, 0]}
+                  style={{ cursor: "pointer" }}
+                  onClick={(data: any) => {
+                    const day = parseInt(data.day, 10);
+                    setSelectedDay((prev) => (prev?.day === day ? null : { day, amount: data.amount }));
+                  }}
+                />
               </BarChart>
             </ResponsiveContainer>
+            {selectedDay && (() => {
+              const cm = currentMonth ?? `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}`;
+              const [yr, mo] = cm.split("-");
+              const dayStr = String(selectedDay.day).padStart(2, "0");
+              const fullDate = `${cm}-${dayStr}`;
+              const dayExpenses = expenses.filter((e) => e.date === fullDate);
+              const dayCats: Record<string, { key: string; name: string; emoji: string; value: number }> = {};
+              dayExpenses.forEach((e) => {
+                const k = e.category || DEFAULT_CATEGORY;
+                const meta = getCategoryMeta(k);
+                if (!dayCats[k]) dayCats[k] = { key: k, name: meta.label, emoji: meta.emoji, value: 0 };
+                dayCats[k].value += e.amount;
+              });
+              const dayCatList = Object.values(dayCats).sort((a, b) => b.value - a.value);
+              return (
+                <div className="mt-3 rounded-md border bg-muted/40 px-3 py-2">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs text-muted-foreground">
+                      {toBnDigits(selectedDay.day)} {BN_MONTHS_FULL[parseInt(mo, 10) - 1]}, {toBnDigits(yr)}
+                    </span>
+                    <span className="text-sm font-bold text-foreground">৳{selectedDay.amount.toLocaleString("bn-BD")}</span>
+                  </div>
+                  {dayCatList.length > 0 ? (
+                    <div className="flex flex-col gap-1.5">
+                      {dayCatList.map((cat) => (
+                        <div key={cat.key} className="flex items-center justify-between text-xs">
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <span className="shrink-0">{cat.emoji}</span>
+                            <span className="text-foreground truncate">{cat.name}</span>
+                          </div>
+                          <span className="font-medium text-foreground whitespace-nowrap">৳{cat.value.toLocaleString("bn-BD")}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">এই দিনে কোনো খরচ নেই</p>
+                  )}
+                </div>
+              );
+            })()}
+            <p className="text-[10px] text-muted-foreground mt-2 text-center">বার এ ক্লিক করে দিনের খাতওয়ারী বিস্তারিত দেখুন</p>
             {onDeleteExpense && expenses.length > 0 && (
               <div className="mt-4">
                 <ExpenseList
