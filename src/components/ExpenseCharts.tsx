@@ -3,12 +3,15 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ExpenseList } from "@/components/ExpenseList";
+import { EXPENSE_CATEGORIES, DEFAULT_CATEGORY, getCategoryMeta } from "@/lib/expenseCategories";
+import { ChevronDown } from "lucide-react";
 
 interface Expense {
   id: string;
   date: string;
   description: string;
   amount: number;
+  category?: string;
 }
 
 interface MonthlyHistoryItem {
@@ -21,7 +24,7 @@ interface ExpenseChartsProps {
   history?: MonthlyHistoryItem[];
   currentMonth?: string;
   onDeleteExpense?: (id: string) => void;
-  onEditExpense?: (id: string, date: string, description: string, amount: number) => void | Promise<void>;
+  onEditExpense?: (id: string, date: string, description: string, amount: number, category: string) => void | Promise<void>;
   onTabChange?: (tab: string) => void;
   salary?: number;
 }
@@ -59,6 +62,7 @@ const toBnDigits = (s: string | number) =>
 
 export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteExpense, onEditExpense, onTabChange, salary }: ExpenseChartsProps) {
   const [selectedMonth, setSelectedMonth] = useState<{ month: string; amount: number } | null>(null);
+  const [openCategory, setOpenCategory] = useState<string | null>(null);
   // Daily expenses for current month
   const dailyData = useMemo(() => {
     const now = new Date();
@@ -106,18 +110,17 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
     });
   }, [expenses, history, currentMonth]);
 
-  // Group by the exact description the user typed (case-insensitive, whitespace-normalized).
-  // Display key preserves original casing of the first occurrence.
+  // Group by category
   const categoryData = useMemo(() => {
-    const cats: Record<string, { name: string; value: number }> = {};
+    const cats: Record<string, { key: string; name: string; emoji: string; value: number; items: Expense[] }> = {};
     expenses.forEach((e) => {
-      const normalized = e.description.trim().replace(/\s+/g, " ");
-      const key = normalized.toLowerCase();
-      if (!cats[key]) cats[key] = { name: normalized, value: 0 };
-      cats[key].value += e.amount;
+      const k = e.category || DEFAULT_CATEGORY;
+      const meta = getCategoryMeta(k);
+      if (!cats[k]) cats[k] = { key: k, name: meta.label, emoji: meta.emoji, value: 0, items: [] };
+      cats[k].value += e.amount;
+      cats[k].items.push(e);
     });
-    return Object.values(cats)
-      .sort((a, b) => b.value - a.value);
+    return Object.values(cats).sort((a, b) => b.value - a.value);
   }, [expenses]);
 
   if (expenses.length === 0 && history.length === 0) return null;
@@ -269,12 +272,41 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
               })()}
               <div className="w-full mt-3 flex flex-col gap-1.5">
                 {categoryData.map((item, i) => (
-                  <div key={item.name} className="flex items-start justify-between gap-2 text-xs px-2 py-1.5 rounded-md bg-muted/40">
-                    <div className="flex items-start gap-2 min-w-0 flex-1">
-                      <span className="w-2.5 h-2.5 rounded-full shrink-0 mt-1" style={{ background: COLORS[i % COLORS.length] }} />
-                      <span className="text-foreground break-words whitespace-normal leading-snug">{item.name}</span>
-                    </div>
-                    <span className="font-semibold text-foreground shrink-0 whitespace-nowrap">৳{item.value.toLocaleString("bn-BD")}</span>
+                  <div key={item.key} className="rounded-md bg-muted/40 overflow-hidden">
+                    <button
+                      type="button"
+                      onClick={() => setOpenCategory(openCategory === item.key ? null : item.key)}
+                      className="w-full flex items-center justify-between gap-2 text-xs px-2 py-1.5 hover:bg-muted/60 transition-colors"
+                    >
+                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                        <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: COLORS[i % COLORS.length] }} />
+                        <span className="shrink-0">{item.emoji}</span>
+                        <span className="text-foreground truncate text-left">{item.name}</span>
+                        <span className="text-[10px] text-muted-foreground shrink-0">({toBnDigits(item.items.length)})</span>
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <span className="font-semibold text-foreground whitespace-nowrap">৳{item.value.toLocaleString("bn-BD")}</span>
+                        <ChevronDown className={`h-3.5 w-3.5 text-muted-foreground transition-transform ${openCategory === item.key ? "rotate-180" : ""}`} />
+                      </div>
+                    </button>
+                    {openCategory === item.key && (
+                      <div className="border-t border-border/40 bg-background/50 divide-y divide-border/30">
+                        {item.items
+                          .slice()
+                          .sort((a, b) => b.date.localeCompare(a.date))
+                          .map((it) => (
+                            <div key={it.id} className="flex items-center justify-between gap-2 px-3 py-1.5 text-xs">
+                              <div className="flex flex-col min-w-0">
+                                <span className="text-foreground truncate">{it.description}</span>
+                                <span className="text-[10px] text-muted-foreground">
+                                  {new Date(it.date).toLocaleDateString("bn-BD", { day: "numeric", month: "long" })}
+                                </span>
+                              </div>
+                              <span className="font-medium text-foreground shrink-0">৳{it.amount.toLocaleString("bn-BD")}</span>
+                            </div>
+                          ))}
+                      </div>
+                    )}
                   </div>
                 ))}
                 <div className="flex items-center justify-between gap-2 text-xs px-2 py-1.5 mt-1 border-t pt-2">

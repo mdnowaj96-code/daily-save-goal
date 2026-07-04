@@ -46,6 +46,7 @@ interface Expense {
   description: string;
   amount: number;
   month: string;
+  category: string;
 }
 
 interface MonthlyHistoryRecord {
@@ -155,7 +156,7 @@ export default function Dashboard() {
 
       if (expensesRes.data) {
         setExpenses(expensesRes.data.map((e) => ({
-          id: e.id, date: e.date, description: e.description, amount: Number(e.amount), month: e.month,
+          id: e.id, date: e.date, description: e.description, amount: Number(e.amount), month: e.month, category: (e as any).category || "অন্যান্য",
         })));
       }
 
@@ -216,16 +217,16 @@ export default function Dashboard() {
   const wantsRemainingPercent = wantsAmount > 0 ? (wantsRemaining / wantsAmount) * 100 : 0;
   const savingsRemainingPercent = savingsAmount > 0 ? (savingsRemaining / savingsAmount) * 100 : 0;
 
-  const handleAddExpense = useCallback(async (date: string, description: string, amount: number) => {
+  const handleAddExpense = useCallback(async (date: string, description: string, amount: number, category: string) => {
     if (!user) return;
     const month = settings.currentMonth;
     const { data, error } = await supabase.from("expenses").insert({
-      user_id: user.id, date, description, amount, month,
+      user_id: user.id, date, description, amount, month, category,
     }).select().single();
 
     if (data && !error) {
       setExpenses((prev) => [{
-        id: data.id, date: data.date, description: data.description, amount: Number(data.amount), month: data.month,
+        id: data.id, date: data.date, description: data.description, amount: Number(data.amount), month: data.month, category: (data as any).category || category,
       }, ...prev]);
     }
   }, [user, settings.currentMonth]);
@@ -240,19 +241,19 @@ export default function Dashboard() {
     setExpenses((prev) => prev.filter((e) => e.id !== id));
   }, [user]);
 
-  const handleEditExpense = useCallback(async (id: string, date: string, description: string, amount: number) => {
+  const handleEditExpense = useCallback(async (id: string, date: string, description: string, amount: number, category: string) => {
     if (!user) return;
     const month = date.substring(0, 7);
     const { error } = await supabase
       .from("expenses")
-      .update({ date, description, amount, month })
+      .update({ date, description, amount, month, category })
       .eq("id", id)
       .eq("user_id", user.id);
     if (error) {
       toast.error("খরচ আপডেট করতে সমস্যা হয়েছে");
       return;
     }
-    setExpenses((prev) => prev.map((e) => e.id === id ? { ...e, date, description, amount, month } : e));
+    setExpenses((prev) => prev.map((e) => e.id === id ? { ...e, date, description, amount, month, category } : e));
   }, [user]);
 
   const handleCloseMonth = useCallback(async () => {
