@@ -3,6 +3,7 @@ interface Expense {
   date: string;
   description: string;
   amount: number;
+  category?: string;
 }
 import { Button } from "@/components/ui/button";
 import { Trash2, Pencil, Check, X } from "lucide-react";
@@ -10,6 +11,8 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { EXPENSE_CATEGORIES, DEFAULT_CATEGORY, getCategoryMeta } from "@/lib/expenseCategories";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,7 +28,7 @@ import {
 interface ExpenseListProps {
   expenses: Expense[];
   onDelete: (id: string) => void;
-  onEdit?: (id: string, date: string, description: string, amount: number) => void | Promise<void>;
+  onEdit?: (id: string, date: string, description: string, amount: number, category: string) => void | Promise<void>;
   salary?: number;
 }
 
@@ -34,12 +37,14 @@ export function ExpenseList({ expenses, onDelete, onEdit, salary = 0 }: ExpenseL
   const [editDate, setEditDate] = useState("");
   const [editDesc, setEditDesc] = useState("");
   const [editAmount, setEditAmount] = useState("");
+  const [editCategory, setEditCategory] = useState<string>(DEFAULT_CATEGORY);
 
   const startEdit = (e: Expense) => {
     setEditingId(e.id);
     setEditDate(e.date);
     setEditDesc(e.description);
     setEditAmount(String(e.amount));
+    setEditCategory(e.category || DEFAULT_CATEGORY);
   };
 
   const saveEdit = async () => {
@@ -49,7 +54,7 @@ export function ExpenseList({ expenses, onDelete, onEdit, salary = 0 }: ExpenseL
       toast.error("সঠিক তথ্য দিন");
       return;
     }
-    await onEdit(editingId, editDate, editDesc.trim(), amt);
+    await onEdit(editingId, editDate, editDesc.trim(), amt, editCategory);
     setEditingId(null);
   };
 
@@ -84,6 +89,14 @@ export function ExpenseList({ expenses, onDelete, onEdit, salary = 0 }: ExpenseL
                   <Input type="date" value={editDate} onChange={(e) => setEditDate(e.target.value)} className="text-xs h-8" />
                   <Input value={editDesc} onChange={(e) => setEditDesc(e.target.value)} placeholder="বিবরণ" className="text-xs h-8" />
                   <Input type="number" value={editAmount} onChange={(e) => setEditAmount(e.target.value)} placeholder="পরিমাণ" className="text-xs h-8" />
+                  <Select value={editCategory} onValueChange={setEditCategory}>
+                    <SelectTrigger className="text-xs h-8"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {EXPENSE_CATEGORIES.map((c) => (
+                        <SelectItem key={c.key} value={c.key}>{c.emoji} {c.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <div className="flex gap-1.5">
                     <Button size="sm" onClick={saveEdit} className="h-7 gap-1 flex-1"><Check className="h-3 w-3" />সংরক্ষণ</Button>
                     <Button size="sm" variant="outline" onClick={() => setEditingId(null)} className="h-7 gap-1"><X className="h-3 w-3" /></Button>
@@ -91,7 +104,10 @@ export function ExpenseList({ expenses, onDelete, onEdit, salary = 0 }: ExpenseL
                 </div>
               ) : (
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-foreground">{expense.description}</span>
+                  <span className="text-sm text-foreground flex items-center gap-1.5 min-w-0">
+                    <span className="shrink-0">{getCategoryMeta(expense.category || DEFAULT_CATEGORY).emoji}</span>
+                    <span className="truncate">{expense.description}</span>
+                  </span>
                   <div className="flex items-center gap-1">
                     <span className="text-sm font-medium text-foreground">৳{expense.amount.toLocaleString("bn-BD")}</span>
                     {onEdit && (
