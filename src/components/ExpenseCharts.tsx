@@ -352,8 +352,15 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
                         <span className="text-foreground truncate text-left">{item.name}</span>
                         <span className="text-[10px] text-muted-foreground shrink-0">({toBnDigits(item.items.length)})</span>
                       </div>
-                      <div className="flex items-center gap-1 shrink-0">
-                        <span className="font-semibold text-foreground whitespace-nowrap">৳{item.value.toLocaleString("bn-BD")}</span>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <div className="flex flex-col items-end leading-tight">
+                          <span className="font-semibold text-foreground whitespace-nowrap">৳{item.value.toLocaleString("bn-BD")}</span>
+                          {salary ? (
+                            <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+                              {toBnDigits(Math.round((item.value / salary) * 100))}%
+                            </span>
+                          ) : null}
+                        </div>
                         <ChevronDown className={`h-3.5 w-3.5 text-muted-foreground transition-transform ${openCategory === item.key ? "rotate-180" : ""}`} />
                       </div>
                     </button>
@@ -379,7 +386,14 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
                 ))}
                 <div className="flex items-center justify-between gap-2 text-xs px-2 py-1.5 mt-1 border-t pt-2">
                   <span className="font-semibold text-muted-foreground">মোট</span>
-                  <span className="font-bold text-destructive">৳{categoryData.reduce((s, c) => s + c.value, 0).toLocaleString("bn-BD")}</span>
+                  <div className="flex flex-col items-end leading-tight">
+                    <span className="font-bold text-destructive">৳{categoryData.reduce((s, c) => s + c.value, 0).toLocaleString("bn-BD")}</span>
+                    {salary ? (
+                      <span className="text-[10px] text-muted-foreground">
+                        {toBnDigits(Math.round((categoryData.reduce((s, c) => s + c.value, 0) / salary) * 100))}%
+                      </span>
+                    ) : null}
+                  </div>
                 </div>
               </div>
             </div>
