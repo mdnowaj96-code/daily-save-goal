@@ -208,7 +208,7 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
               });
               const dayCatList = Object.values(dayCats).sort((a, b) => b.value - a.value);
               return (
-                <div className="mt-3 rounded-md border bg-muted/40 px-3 py-2">
+                <div ref={dailyPanelRef} className="mt-3 rounded-md border bg-muted/40 px-3 py-2">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs text-muted-foreground">
                       {toBnDigits(selectedDay.day)} {BN_MONTHS_FULL[parseInt(mo, 10) - 1]}, {toBnDigits(yr)}
