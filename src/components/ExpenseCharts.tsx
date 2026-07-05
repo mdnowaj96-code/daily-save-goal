@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ExpenseList } from "@/components/ExpenseList";
 import { EXPENSE_CATEGORIES, DEFAULT_CATEGORY, getCategoryMeta } from "@/lib/expenseCategories";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface Expense {
   id: string;
@@ -102,6 +102,26 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
     }));
   }, [expenses, currentMonth]);
 
+  const [dailyWindowStart, setDailyWindowStart] = useState(0);
+  const [dailyWindowSize, setDailyWindowSize] = useState(7);
+
+  useEffect(() => {
+    const update = () => setDailyWindowSize(window.innerWidth < 640 ? 7 : 12);
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
+
+  useEffect(() => {
+    setDailyWindowStart(0);
+  }, [currentMonth]);
+
+  const maxDailyStart = Math.max(0, dailyData.length - dailyWindowSize);
+  const safeDailyStart = Math.min(dailyWindowStart, maxDailyStart);
+  const visibleDailyData = dailyData.slice(safeDailyStart, safeDailyStart + dailyWindowSize);
+  const dailyStartDay = safeDailyStart + 1;
+  const dailyEndDay = Math.min(dailyData.length, safeDailyStart + dailyWindowSize);
+
   // Monthly totals: combine history (closed months) + current month from expenses
   const monthlyData = useMemo(() => {
     const monthly: Record<string, number> = {};
@@ -169,8 +189,31 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
           </TabsList>
 
           <TabsContent value="daily">
+            <div className="flex items-center justify-between mb-2">
+              <button
+                type="button"
+                disabled={safeDailyStart === 0}
+                onClick={() => setDailyWindowStart((p) => Math.max(0, p - dailyWindowSize))}
+                className="flex items-center gap-0.5 text-xs text-muted-foreground disabled:opacity-30 hover:text-foreground transition-colors"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                <span>পূর্ববর্তী</span>
+              </button>
+              <span className="text-xs font-medium text-foreground">
+                {toBnDigits(dailyStartDay)} - {toBnDigits(dailyEndDay)}
+              </span>
+              <button
+                type="button"
+                disabled={safeDailyStart >= maxDailyStart}
+                onClick={() => setDailyWindowStart((p) => Math.min(maxDailyStart, p + dailyWindowSize))}
+                className="flex items-center gap-0.5 text-xs text-muted-foreground disabled:opacity-30 hover:text-foreground transition-colors"
+              >
+                <span>পরবর্তী</span>
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
             <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={dailyData}>
+              <BarChart data={visibleDailyData}>
                 <defs>
                   <linearGradient id="dailyBar" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={1} />
@@ -178,7 +221,7 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="day" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} interval="preserveStartEnd" />
+                <XAxis dataKey="day" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} interval={0} />
                 <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} width={45} />
                 <Tooltip content={<CustomTooltip />} />
                 <Bar
