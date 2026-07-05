@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ExpenseList } from "@/components/ExpenseList";
 import { EXPENSE_CATEGORIES, DEFAULT_CATEGORY, getCategoryMeta } from "@/lib/expenseCategories";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface Expense {
   id: string;
