@@ -102,6 +102,26 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
     }));
   }, [expenses, currentMonth]);
 
+  const [dailyWindowStart, setDailyWindowStart] = useState(0);
+  const [dailyWindowSize, setDailyWindowSize] = useState(7);
+
+  useEffect(() => {
+    const update = () => setDailyWindowSize(window.innerWidth < 640 ? 7 : 12);
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
+
+  useEffect(() => {
+    setDailyWindowStart(0);
+  }, [currentMonth]);
+
+  const maxDailyStart = Math.max(0, dailyData.length - dailyWindowSize);
+  const safeDailyStart = Math.min(dailyWindowStart, maxDailyStart);
+  const visibleDailyData = dailyData.slice(safeDailyStart, safeDailyStart + dailyWindowSize);
+  const dailyStartDay = safeDailyStart + 1;
+  const dailyEndDay = Math.min(dailyData.length, safeDailyStart + dailyWindowSize);
+
   // Monthly totals: combine history (closed months) + current month from expenses
   const monthlyData = useMemo(() => {
     const monthly: Record<string, number> = {};
