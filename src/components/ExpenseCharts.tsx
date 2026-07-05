@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef, useEffect } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LabelList } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -64,6 +64,23 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
   const [selectedMonth, setSelectedMonth] = useState<{ month: string; amount: number } | null>(null);
   const [openCategory, setOpenCategory] = useState<string | null>(null);
   const [selectedDay, setSelectedDay] = useState<{ day: number; amount: number } | null>(null);
+  const dailyPanelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!selectedDay) return;
+    const handleClick = (e: MouseEvent) => {
+      if (dailyPanelRef.current && !dailyPanelRef.current.contains(e.target as Node)) {
+        setSelectedDay(null);
+      }
+    };
+    const id = setTimeout(() => {
+      document.addEventListener("mousedown", handleClick);
+    }, 0);
+    return () => {
+      clearTimeout(id);
+      document.removeEventListener("mousedown", handleClick);
+    };
+  }, [selectedDay]);
   // Daily expenses for current month
   const dailyData = useMemo(() => {
     const now = new Date();
@@ -191,7 +208,7 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
               });
               const dayCatList = Object.values(dayCats).sort((a, b) => b.value - a.value);
               return (
-                <div className="mt-3 rounded-md border bg-muted/40 px-3 py-2">
+                <div ref={dailyPanelRef} className="mt-3 rounded-md border bg-muted/40 px-3 py-2">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs text-muted-foreground">
                       {toBnDigits(selectedDay.day)} {BN_MONTHS_FULL[parseInt(mo, 10) - 1]}, {toBnDigits(yr)}
