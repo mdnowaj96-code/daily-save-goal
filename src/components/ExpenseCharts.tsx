@@ -27,6 +27,7 @@ interface ExpenseChartsProps {
   onEditExpense?: (id: string, date: string, description: string, amount: number, category: string) => void | Promise<void>;
   onTabChange?: (tab: string) => void;
   salary?: number;
+  allExpenses?: Expense[];
 }
 
 const COLORS = [
