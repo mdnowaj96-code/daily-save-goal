@@ -497,6 +497,9 @@ export default function Dashboard() {
                             {e.isCurrent ? "বর্তমান মাস" : e.monthLabel}
                           </span>
                         </span>
+                        <span className="text-[10px] text-muted-foreground">
+                          {getTimeDiffInBn(e.date)}
+                        </span>
                       </div>
                       <span className="text-sm font-semibold text-foreground shrink-0">৳{e.amount.toLocaleString("bn-BD")}</span>
                     </div>
