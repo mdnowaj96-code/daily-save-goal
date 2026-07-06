@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { LogOut, Loader2, CalendarCheck, History, FileDown } from "lucide-react";
 import { Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { getTimeDiffInBn } from "@/lib/utils";
 import {
   AlertDialog,
   AlertDialogAction,
