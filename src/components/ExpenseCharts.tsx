@@ -61,11 +61,12 @@ const BN_MONTHS_FULL = [
 const toBnDigits = (s: string | number) =>
   String(s).replace(/[0-9]/g, (d) => "০১২৩৪৫৬৭৮৯"[+d]);
 
-export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteExpense, onEditExpense, onTabChange, salary }: ExpenseChartsProps) {
-  const [selectedMonth, setSelectedMonth] = useState<{ month: string; amount: number } | null>(null);
+export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteExpense, onEditExpense, onTabChange, salary, allExpenses }: ExpenseChartsProps) {
+  const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
   const [openCategory, setOpenCategory] = useState<string | null>(null);
   const [selectedDay, setSelectedDay] = useState<{ day: number; amount: number } | null>(null);
   const dailyPanelRef = useRef<HTMLDivElement>(null);
+  const monthlyPanelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!selectedDay) return;
