@@ -83,6 +83,22 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
       document.removeEventListener("mousedown", handleClick);
     };
   }, [selectedDay]);
+
+  useEffect(() => {
+    if (!selectedMonth) return;
+    const handleClick = (e: MouseEvent) => {
+      if (monthlyPanelRef.current && !monthlyPanelRef.current.contains(e.target as Node)) {
+        setSelectedMonth(null);
+      }
+    };
+    const id = setTimeout(() => {
+      document.addEventListener("mousedown", handleClick);
+    }, 0);
+    return () => {
+      clearTimeout(id);
+      document.removeEventListener("mousedown", handleClick);
+    };
+  }, [selectedMonth]);
   // Daily expenses for current month
   const dailyData = useMemo(() => {
     const now = new Date();
