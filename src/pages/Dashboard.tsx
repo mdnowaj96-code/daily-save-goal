@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { LogOut, Loader2, CalendarCheck, History, FileDown } from "lucide-react";
 import { Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { getTimeDiffInBn } from "@/lib/utils";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -495,6 +496,9 @@ export default function Dashboard() {
                           <span className={e.isCurrent ? "text-primary font-medium" : ""}>
                             {e.isCurrent ? "বর্তমান মাস" : e.monthLabel}
                           </span>
+                        </span>
+                        <span className="text-[10px] text-muted-foreground">
+                          {getTimeDiffInBn(e.date)}
                         </span>
                       </div>
                       <span className="text-sm font-semibold text-foreground shrink-0">৳{e.amount.toLocaleString("bn-BD")}</span>
