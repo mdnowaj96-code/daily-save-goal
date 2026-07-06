@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Trash2, Pencil, Check, X, Plus, Loader2, FileDown } from "lucide-react";
 import { toast } from "sonner";
 import { generatePdfReport } from "@/lib/generatePdfReport";
+import { EXPENSE_CATEGORIES, DEFAULT_CATEGORY, getCategoryMeta } from "@/lib/expenseCategories";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,6 +26,7 @@ interface Expense {
   description: string;
   amount: number;
   month: string;
+  category: string;
 }
 
 interface MonthDetailDialogProps {
@@ -49,11 +52,13 @@ export function MonthDetailDialog({
   const [editDesc, setEditDesc] = useState("");
   const [editAmount, setEditAmount] = useState("");
   const [editDate, setEditDate] = useState("");
+  const [editCategory, setEditCategory] = useState<string>(DEFAULT_CATEGORY);
 
   // Add form state
   const [newDesc, setNewDesc] = useState("");
   const [newAmount, setNewAmount] = useState("");
   const [newDate, setNewDate] = useState(`${month}-01`);
+  const [newCategory, setNewCategory] = useState<string>(DEFAULT_CATEGORY);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -66,6 +71,7 @@ export function MonthDetailDialog({
     if (data) {
       setExpenses(data.map((e: any) => ({
         id: e.id, date: e.date, description: e.description, amount: Number(e.amount), month: e.month,
+        category: e.category || DEFAULT_CATEGORY,
       })));
     }
     setLoading(false);
@@ -105,6 +111,7 @@ export function MonthDetailDialog({
     setEditDesc(e.description);
     setEditAmount(String(e.amount));
     setEditDate(e.date);
+    setEditCategory(e.category || DEFAULT_CATEGORY);
   };
 
   const handleSaveEdit = async () => {
@@ -118,10 +125,11 @@ export function MonthDetailDialog({
       description: editDesc.trim(),
       amount: amt,
       date: editDate,
+      category: editCategory,
     }).eq("id", editingId);
     if (error) { toast.error("আপডেট করতে সমস্যা হয়েছে"); return; }
     const updated = expenses.map((e) =>
-      e.id === editingId ? { ...e, description: editDesc.trim(), amount: amt, date: editDate } : e
+      e.id === editingId ? { ...e, description: editDesc.trim(), amount: amt, date: editDate, category: editCategory } : e
     );
     setExpenses(updated);
     setEditingId(null);
@@ -154,13 +162,15 @@ export function MonthDetailDialog({
       description: newDesc.trim(),
       amount: amt,
       month,
+      category: newCategory,
     }).select().single();
     if (error || !data) { toast.error("যোগ করতে সমস্যা হয়েছে"); return; }
     const updated = [{
       id: data.id, date: data.date, description: data.description, amount: Number(data.amount), month: data.month,
+      category: (data as any).category || newCategory,
     }, ...expenses];
     setExpenses(updated);
-    setNewDesc(""); setNewAmount("");
+    setNewDesc(""); setNewAmount(""); setNewCategory(DEFAULT_CATEGORY);
     await recomputeAndSaveSnapshot(updated);
     toast.success("খরচ যোগ করা হয়েছে");
   };
@@ -211,6 +221,16 @@ export function MonthDetailDialog({
           <Input type="date" value={newDate} min={`${month}-01`} max={`${month}-31`} onChange={(e) => setNewDate(e.target.value)} className="text-xs h-8" />
           <Input placeholder="বিবরণ" value={newDesc} onChange={(e) => setNewDesc(e.target.value)} className="text-xs h-8" />
           <Input type="number" placeholder="পরিমাণ (৳)" value={newAmount} onChange={(e) => setNewAmount(e.target.value)} className="text-xs h-8" />
+          <Select value={newCategory} onValueChange={setNewCategory}>
+            <SelectTrigger className="text-xs h-8"><SelectValue placeholder="খাত নির্বাচন" /></SelectTrigger>
+            <SelectContent>
+              {EXPENSE_CATEGORIES.map((c) => (
+                <SelectItem key={c.key} value={c.key} className="text-xs">
+                  <span className="mr-1">{c.emoji}</span>{c.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Button size="sm" onClick={handleAdd} className="gap-1.5 h-8">
             <Plus className="h-3.5 w-3.5" /> যোগ করুন
           </Button>
@@ -230,6 +250,16 @@ export function MonthDetailDialog({
                     <Input type="date" value={editDate} min={`${month}-01`} max={`${month}-31`} onChange={(ev) => setEditDate(ev.target.value)} className="text-xs h-8" />
                     <Input value={editDesc} onChange={(ev) => setEditDesc(ev.target.value)} className="text-xs h-8" />
                     <Input type="number" value={editAmount} onChange={(ev) => setEditAmount(ev.target.value)} className="text-xs h-8" />
+                    <Select value={editCategory} onValueChange={setEditCategory}>
+                      <SelectTrigger className="text-xs h-8"><SelectValue placeholder="খাত" /></SelectTrigger>
+                      <SelectContent>
+                        {EXPENSE_CATEGORIES.map((c) => (
+                          <SelectItem key={c.key} value={c.key} className="text-xs">
+                            <span className="mr-1">{c.emoji}</span>{c.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <div className="flex gap-1.5">
                       <Button size="sm" onClick={handleSaveEdit} className="h-7 gap-1 flex-1"><Check className="h-3 w-3" />সংরক্ষণ</Button>
                       <Button size="sm" variant="outline" onClick={() => setEditingId(null)} className="h-7 gap-1"><X className="h-3 w-3" /></Button>
@@ -241,6 +271,8 @@ export function MonthDetailDialog({
                       <span className="text-sm text-foreground truncate">{e.description}</span>
                       <span className="text-[10px] text-muted-foreground">
                         {new Date(e.date).toLocaleDateString("bn-BD", { day: "numeric", month: "short" })}
+                        {" · "}
+                        {getCategoryMeta(e.category).emoji} {getCategoryMeta(e.category).label}
                       </span>
                     </div>
                     <div className="flex items-center gap-1">
