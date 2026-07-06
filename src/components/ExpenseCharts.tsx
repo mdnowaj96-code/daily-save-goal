@@ -316,7 +316,10 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
                       dataKey="amount"
                       radius={[6, 6, 0, 0]}
                       maxBarSize={22}
-                      onClick={(data: any) => setSelectedMonth({ month: data.month, amount: data.amount })}
+                      onClick={(data: any) => {
+                        const found = monthlyData.find((m) => m.month === data.month);
+                        if (found) setSelectedMonth(found.key);
+                      }}
                       style={{ cursor: "pointer" }}
                     >
                       <LabelList
