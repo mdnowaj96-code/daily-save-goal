@@ -27,6 +27,7 @@ interface ExpenseChartsProps {
   onEditExpense?: (id: string, date: string, description: string, amount: number, category: string) => void | Promise<void>;
   onTabChange?: (tab: string) => void;
   salary?: number;
+  allExpenses?: Expense[];
 }
 
 const COLORS = [
@@ -60,11 +61,12 @@ const BN_MONTHS_FULL = [
 const toBnDigits = (s: string | number) =>
   String(s).replace(/[0-9]/g, (d) => "০১২৩৪৫৬৭৮৯"[+d]);
 
-export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteExpense, onEditExpense, onTabChange, salary }: ExpenseChartsProps) {
-  const [selectedMonth, setSelectedMonth] = useState<{ month: string; amount: number } | null>(null);
+export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteExpense, onEditExpense, onTabChange, salary, allExpenses }: ExpenseChartsProps) {
+  const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
   const [openCategory, setOpenCategory] = useState<string | null>(null);
   const [selectedDay, setSelectedDay] = useState<{ day: number; amount: number } | null>(null);
   const dailyPanelRef = useRef<HTMLDivElement>(null);
+  const monthlyPanelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!selectedDay) return;
@@ -81,6 +83,22 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
       document.removeEventListener("mousedown", handleClick);
     };
   }, [selectedDay]);
+
+  useEffect(() => {
+    if (!selectedMonth) return;
+    const handleClick = (e: MouseEvent) => {
+      if (monthlyPanelRef.current && !monthlyPanelRef.current.contains(e.target as Node)) {
+        setSelectedMonth(null);
+      }
+    };
+    const id = setTimeout(() => {
+      document.addEventListener("mousedown", handleClick);
+    }, 0);
+    return () => {
+      clearTimeout(id);
+      document.removeEventListener("mousedown", handleClick);
+    };
+  }, [selectedMonth]);
   // Daily expenses for current month
   const dailyData = useMemo(() => {
     const now = new Date();
@@ -314,7 +332,10 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
                       dataKey="amount"
                       radius={[6, 6, 0, 0]}
                       maxBarSize={22}
-                      onClick={(data: any) => setSelectedMonth({ month: data.month, amount: data.amount })}
+                      onClick={(data: any) => {
+                        const found = monthlyData.find((m) => m.month === data.month);
+                        if (found) setSelectedMonth(found.key);
+                      }}
                       style={{ cursor: "pointer" }}
                     >
                       <LabelList
@@ -332,12 +353,46 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
-                {selectedMonth && (
-                  <div className="mt-3 rounded-md border bg-muted/40 px-3 py-2 flex items-center justify-between">
-                    <span className="text-xs text-muted-foreground">{selectedMonth.month}</span>
-                    <span className="text-sm font-bold text-foreground">৳{selectedMonth.amount.toLocaleString("bn-BD")}</span>
-                  </div>
-                )}
+                {selectedMonth && (() => {
+                  const monthEntry = monthlyData.find((m) => m.key === selectedMonth);
+                  if (!monthEntry) return null;
+                  const src = allExpenses || expenses;
+                  const monthExpenses = src.filter((e) => e.date.startsWith(selectedMonth));
+                  const monthCats: Record<string, { key: string; name: string; emoji: string; value: number }> = {};
+                  monthExpenses.forEach((e) => {
+                    const k = e.category || DEFAULT_CATEGORY;
+                    const meta = getCategoryMeta(k);
+                    if (!monthCats[k]) monthCats[k] = { key: k, name: meta.label, emoji: meta.emoji, value: 0 };
+                    monthCats[k].value += e.amount;
+                  });
+                  const monthCatList = Object.values(monthCats).sort((a, b) => b.value - a.value);
+                  const totalAmount = monthCatList.reduce((s, c) => s + c.value, 0);
+                  return (
+                    <div ref={monthlyPanelRef} className="mt-3 rounded-md border bg-muted/40 px-3 py-2">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs text-muted-foreground">{monthEntry.month}</span>
+                        <span className="text-sm font-bold text-foreground">৳{monthEntry.amount.toLocaleString("bn-BD")}</span>
+                      </div>
+                      {monthCatList.length > 0 ? (
+                        <div className="flex flex-col gap-1.5">
+                          {monthCatList.map((cat) => (
+                            <div key={cat.key} className="flex items-center justify-between text-xs">
+                              <div className="flex items-center gap-1.5 min-w-0">
+                                <span className="shrink-0">{cat.emoji}</span>
+                                <span className="text-foreground truncate">{cat.name}</span>
+                              </div>
+                              <span className="font-medium text-foreground whitespace-nowrap">
+                                {toBnDigits(Math.round((cat.value / totalAmount) * 100))}%
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-xs text-muted-foreground">এই মাসের বিস্তারিত খরচের তথ্য নেই</p>
+                      )}
+                    </div>
+                  );
+                })()}
                 <p className="text-[10px] text-muted-foreground mt-2 text-center">বার এ ক্লিক করে মাসের পরিমাণ দেখুন</p>
               </>
             )}

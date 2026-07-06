@@ -550,6 +550,7 @@ export default function Dashboard() {
         <ExpenseForm onAdd={handleAddExpense} />
         <ExpenseCharts
           expenses={activeExpenses}
+          allExpenses={expenses}
           history={history.map((h) => ({ month: h.month, total_expenses: h.total_expenses }))}
           currentMonth={settings.currentMonth}
           onDeleteExpense={handleDeleteExpense}
