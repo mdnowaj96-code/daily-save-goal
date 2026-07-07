@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { LogOut, Loader2, CalendarCheck, History, FileDown } from "lucide-react";
-import { Search, X } from "lucide-react";
+import { Search, X, CalendarDays, CalendarRange, TrendingUp } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { getTimeDiffInBn } from "@/lib/utils";
 import {
@@ -217,6 +217,38 @@ export default function Dashboard() {
   const needsRemainingPercent = needsAmount > 0 ? (needsRemaining / needsAmount) * 100 : 0;
   const wantsRemainingPercent = wantsAmount > 0 ? (wantsRemaining / wantsAmount) * 100 : 0;
   const savingsRemainingPercent = savingsAmount > 0 ? (savingsRemaining / savingsAmount) * 100 : 0;
+
+  // Quick stats: today / this week / daily average
+  const todayKey = (() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  })();
+  const todayExpense = activeExpenses
+    .filter((e) => e.date === todayKey)
+    .reduce((s, e) => s + e.amount, 0);
+
+  const weekStart = (() => {
+    const d = new Date();
+    const day = d.getDay(); // 0=Sun
+    d.setDate(d.getDate() - day);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  })();
+  const weekExpense = activeExpenses
+    .filter((e) => {
+      const ed = new Date(e.date);
+      return ed >= weekStart && ed <= new Date();
+    })
+    .reduce((s, e) => s + e.amount, 0);
+
+  const daysElapsed = (() => {
+    const now = new Date();
+    const nowKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    if (settings.currentMonth === nowKey) return now.getDate();
+    const [yy, mm] = settings.currentMonth.split("-").map(Number);
+    return new Date(yy, mm, 0).getDate();
+  })();
+  const dailyAverage = daysElapsed > 0 ? Math.round(totalExpenses / daysElapsed) : 0;
 
   const handleAddExpense = useCallback(async (date: string, description: string, amount: number, category: string) => {
     if (!user) return;
@@ -548,6 +580,35 @@ export default function Dashboard() {
         </div>
 
         <ExpenseForm onAdd={handleAddExpense} />
+        <div className="grid grid-cols-3 gap-2 sm:gap-3">
+          <div className="rounded-xl border border-border/60 gradient-card shadow-soft p-3 flex flex-col gap-1">
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <CalendarDays className="h-3.5 w-3.5" />
+              <span className="text-[10px] font-medium">আজকের খরচ</span>
+            </div>
+            <span className="text-sm sm:text-base font-bold text-foreground">
+              ৳{todayExpense.toLocaleString("bn-BD")}
+            </span>
+          </div>
+          <div className="rounded-xl border border-border/60 gradient-card shadow-soft p-3 flex flex-col gap-1">
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <CalendarRange className="h-3.5 w-3.5" />
+              <span className="text-[10px] font-medium">এই সপ্তাহের খরচ</span>
+            </div>
+            <span className="text-sm sm:text-base font-bold text-foreground">
+              ৳{weekExpense.toLocaleString("bn-BD")}
+            </span>
+          </div>
+          <div className="rounded-xl border border-border/60 gradient-card shadow-soft p-3 flex flex-col gap-1">
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <TrendingUp className="h-3.5 w-3.5" />
+              <span className="text-[10px] font-medium">দৈনিক গড়</span>
+            </div>
+            <span className="text-sm sm:text-base font-bold text-foreground">
+              ৳{dailyAverage.toLocaleString("bn-BD")}
+            </span>
+          </div>
+        </div>
         <ExpenseCharts
           expenses={activeExpenses}
           allExpenses={expenses}
