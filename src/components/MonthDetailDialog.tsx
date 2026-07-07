@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Trash2, Pencil, Check, X, Plus, Loader2, FileDown } from "lucide-react";
+import { Trash2, Pencil, Check, X, Plus, Loader2, FileDown, TrendingUp, ArrowUp, ArrowDown } from "lucide-react";
 import { toast } from "sonner";
 import { generatePdfReport } from "@/lib/generatePdfReport";
 import { EXPENSE_CATEGORIES, DEFAULT_CATEGORY, getCategoryMeta } from "@/lib/expenseCategories";
@@ -177,6 +177,26 @@ export function MonthDetailDialog({
 
   const total = expenses.reduce((s, e) => s + e.amount, 0);
 
+  // Per-day stats for this historical month
+  const daysInMonth = (() => {
+    const [y, m] = month.split("-").map(Number);
+    return new Date(y, m, 0).getDate();
+  })();
+  const dailyAverage = daysInMonth > 0 ? Math.round(total / daysInMonth) : 0;
+  const dayTotals = expenses.reduce<Record<string, number>>((acc, e) => {
+    acc[e.date] = (acc[e.date] || 0) + e.amount;
+    return acc;
+  }, {});
+  const dayValues = Object.values(dayTotals);
+  const maxDay = dayValues.length ? Math.max(...dayValues) : 0;
+  const minDay = dayValues.length ? Math.min(...dayValues) : 0;
+
+  const statCards = [
+    { label: "সর্বোচ্চ দিন", value: maxDay, Icon: ArrowUp, colorVar: "needs", gradient: "var(--gradient-needs)" },
+    { label: "সর্বনিম্ন দিন", value: minDay, Icon: ArrowDown, colorVar: "wants", gradient: "var(--gradient-wants)" },
+    { label: "দৈনিক গড়", value: dailyAverage, Icon: TrendingUp, colorVar: "salary", gradient: "var(--gradient-salary)" },
+  ];
+
   const handleDownloadPdf = async (view: "daily" | "category") => {
     try {
       await generatePdfReport({
@@ -202,6 +222,36 @@ export function MonthDetailDialog({
         <div className="flex items-center justify-between text-xs px-1">
           <span className="text-muted-foreground">মোট খরচ</span>
           <span className="font-bold text-destructive">৳{total.toLocaleString("bn-BD")}</span>
+        </div>
+
+        <div className="grid grid-cols-3 gap-2">
+          {statCards.map(({ label, value, Icon, colorVar, gradient }) => (
+            <div
+              key={label}
+              className="relative overflow-hidden rounded-2xl border border-border/60 gradient-card shadow-soft p-2.5 flex flex-col gap-1.5"
+            >
+              <div
+                aria-hidden
+                className="absolute -top-6 -right-6 h-14 w-14 rounded-full opacity-20 blur-xl"
+                style={{ backgroundImage: gradient }}
+              />
+              <div className="relative flex items-center gap-1.5">
+                <div
+                  className="h-6 w-6 rounded-lg flex items-center justify-center text-primary-foreground shadow-soft shrink-0"
+                  style={{ backgroundImage: gradient }}
+                >
+                  <Icon className="h-3 w-3" />
+                </div>
+                <span className="text-[10px] font-semibold text-muted-foreground leading-tight">{label}</span>
+              </div>
+              <div className="relative flex items-baseline gap-0.5">
+                <span className="text-[10px] font-bold" style={{ color: `hsl(var(--${colorVar}))` }}>৳</span>
+                <span className="text-sm font-extrabold text-foreground tracking-tight tabular-nums">
+                  {value.toLocaleString("bn-BD")}
+                </span>
+              </div>
+            </div>
+          ))}
         </div>
 
         <div className="flex gap-2">
