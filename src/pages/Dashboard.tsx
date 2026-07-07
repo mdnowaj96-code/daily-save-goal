@@ -581,33 +581,42 @@ export default function Dashboard() {
 
         <ExpenseForm onAdd={handleAddExpense} />
         <div className="grid grid-cols-3 gap-2 sm:gap-3">
-          <div className="rounded-xl border border-border/60 gradient-card shadow-soft p-3 flex flex-col gap-1">
-            <div className="flex items-center gap-1.5 text-muted-foreground">
-              <CalendarDays className="h-3.5 w-3.5" />
-              <span className="text-[10px] font-medium">আজকের খরচ</span>
+          {[
+            { label: "আজকের খরচ", value: todayExpense, Icon: CalendarDays, colorVar: "needs", gradient: "var(--gradient-needs)" },
+            { label: "এই সপ্তাহে", value: weekExpense, Icon: CalendarRange, colorVar: "wants", gradient: "var(--gradient-wants)" },
+            { label: "দৈনিক গড়", value: dailyAverage, Icon: TrendingUp, colorVar: "salary", gradient: "var(--gradient-salary)" },
+          ].map(({ label, value, Icon, colorVar, gradient }) => (
+            <div
+              key={label}
+              className="relative overflow-hidden rounded-2xl border border-border/60 gradient-card shadow-soft p-3 flex flex-col gap-2 hover:shadow-elegant transition-shadow"
+            >
+              <div
+                aria-hidden
+                className="absolute -top-6 -right-6 h-16 w-16 rounded-full opacity-20 blur-xl"
+                style={{ backgroundImage: gradient }}
+              />
+              <div className="relative flex items-center gap-2">
+                <div
+                  className="h-7 w-7 rounded-lg flex items-center justify-center text-primary-foreground shadow-soft shrink-0"
+                  style={{ backgroundImage: gradient }}
+                >
+                  <Icon className="h-3.5 w-3.5" />
+                </div>
+                <span className="text-[10px] font-semibold text-muted-foreground leading-tight">{label}</span>
+              </div>
+              <div className="relative flex items-baseline gap-0.5">
+                <span
+                  className="text-[11px] font-bold"
+                  style={{ color: `hsl(var(--${colorVar}))` }}
+                >
+                  ৳
+                </span>
+                <span className="text-base sm:text-lg font-extrabold text-foreground tracking-tight tabular-nums">
+                  {value.toLocaleString("bn-BD")}
+                </span>
+              </div>
             </div>
-            <span className="text-sm sm:text-base font-bold text-foreground">
-              ৳{todayExpense.toLocaleString("bn-BD")}
-            </span>
-          </div>
-          <div className="rounded-xl border border-border/60 gradient-card shadow-soft p-3 flex flex-col gap-1">
-            <div className="flex items-center gap-1.5 text-muted-foreground">
-              <CalendarRange className="h-3.5 w-3.5" />
-              <span className="text-[10px] font-medium">এই সপ্তাহের খরচ</span>
-            </div>
-            <span className="text-sm sm:text-base font-bold text-foreground">
-              ৳{weekExpense.toLocaleString("bn-BD")}
-            </span>
-          </div>
-          <div className="rounded-xl border border-border/60 gradient-card shadow-soft p-3 flex flex-col gap-1">
-            <div className="flex items-center gap-1.5 text-muted-foreground">
-              <TrendingUp className="h-3.5 w-3.5" />
-              <span className="text-[10px] font-medium">দৈনিক গড়</span>
-            </div>
-            <span className="text-sm sm:text-base font-bold text-foreground">
-              ৳{dailyAverage.toLocaleString("bn-BD")}
-            </span>
-          </div>
+          ))}
         </div>
         <ExpenseCharts
           expenses={activeExpenses}
