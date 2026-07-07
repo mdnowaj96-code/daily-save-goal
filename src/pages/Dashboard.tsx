@@ -580,6 +580,35 @@ export default function Dashboard() {
         </div>
 
         <ExpenseForm onAdd={handleAddExpense} />
+        <div className="grid grid-cols-3 gap-2 sm:gap-3">
+          <div className="rounded-xl border border-border/60 gradient-card shadow-soft p-3 flex flex-col gap-1">
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <CalendarDays className="h-3.5 w-3.5" />
+              <span className="text-[10px] font-medium">আজকের খরচ</span>
+            </div>
+            <span className="text-sm sm:text-base font-bold text-foreground">
+              ৳{todayExpense.toLocaleString("bn-BD")}
+            </span>
+          </div>
+          <div className="rounded-xl border border-border/60 gradient-card shadow-soft p-3 flex flex-col gap-1">
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <CalendarRange className="h-3.5 w-3.5" />
+              <span className="text-[10px] font-medium">এই সপ্তাহের খরচ</span>
+            </div>
+            <span className="text-sm sm:text-base font-bold text-foreground">
+              ৳{weekExpense.toLocaleString("bn-BD")}
+            </span>
+          </div>
+          <div className="rounded-xl border border-border/60 gradient-card shadow-soft p-3 flex flex-col gap-1">
+            <div className="flex items-center gap-1.5 text-muted-foreground">
+              <TrendingUp className="h-3.5 w-3.5" />
+              <span className="text-[10px] font-medium">দৈনিক গড়</span>
+            </div>
+            <span className="text-sm sm:text-base font-bold text-foreground">
+              ৳{dailyAverage.toLocaleString("bn-BD")}
+            </span>
+          </div>
+        </div>
         <ExpenseCharts
           expenses={activeExpenses}
           allExpenses={expenses}
