@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { LogOut, Loader2, CalendarCheck, History, FileDown } from "lucide-react";
-import { Search, X } from "lucide-react";
+import { Search, X, CalendarDays, CalendarRange, TrendingUp } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { getTimeDiffInBn } from "@/lib/utils";
 import {
@@ -217,6 +217,38 @@ export default function Dashboard() {
   const needsRemainingPercent = needsAmount > 0 ? (needsRemaining / needsAmount) * 100 : 0;
   const wantsRemainingPercent = wantsAmount > 0 ? (wantsRemaining / wantsAmount) * 100 : 0;
   const savingsRemainingPercent = savingsAmount > 0 ? (savingsRemaining / savingsAmount) * 100 : 0;
+
+  // Quick stats: today / this week / daily average
+  const todayKey = (() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  })();
+  const todayExpense = activeExpenses
+    .filter((e) => e.date === todayKey)
+    .reduce((s, e) => s + e.amount, 0);
+
+  const weekStart = (() => {
+    const d = new Date();
+    const day = d.getDay(); // 0=Sun
+    d.setDate(d.getDate() - day);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  })();
+  const weekExpense = activeExpenses
+    .filter((e) => {
+      const ed = new Date(e.date);
+      return ed >= weekStart && ed <= new Date();
+    })
+    .reduce((s, e) => s + e.amount, 0);
+
+  const daysElapsed = (() => {
+    const now = new Date();
+    const nowKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    if (settings.currentMonth === nowKey) return now.getDate();
+    const [yy, mm] = settings.currentMonth.split("-").map(Number);
+    return new Date(yy, mm, 0).getDate();
+  })();
+  const dailyAverage = daysElapsed > 0 ? Math.round(totalExpenses / daysElapsed) : 0;
 
   const handleAddExpense = useCallback(async (date: string, description: string, amount: number, category: string) => {
     if (!user) return;
