@@ -381,9 +381,14 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
                                 <span className="shrink-0">{cat.emoji}</span>
                                 <span className="text-foreground truncate">{cat.name}</span>
                               </div>
-                              <span className="font-medium text-foreground whitespace-nowrap">
-                                {toBnDigits(Math.round((cat.value / totalAmount) * 100))}%
-                              </span>
+                              <div className="flex flex-col items-end leading-tight shrink-0">
+                                <span className="font-medium text-foreground whitespace-nowrap">
+                                  {toBnDigits(Math.round((cat.value / totalAmount) * 100))}%
+                                </span>
+                                <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+                                  ৳{cat.value.toLocaleString("bn-BD")}
+                                </span>
+                              </div>
                             </div>
                           ))}
                         </div>
