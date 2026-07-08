@@ -67,6 +67,7 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
   const [selectedDay, setSelectedDay] = useState<{ day: number; amount: number } | null>(null);
   const dailyPanelRef = useRef<HTMLDivElement>(null);
   const monthlyPanelRef = useRef<HTMLDivElement>(null);
+  const hasAutoSelected = useRef(false);
 
   useEffect(() => {
     if (!selectedDay) return;
