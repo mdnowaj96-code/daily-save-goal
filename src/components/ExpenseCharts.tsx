@@ -67,6 +67,7 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
   const [selectedDay, setSelectedDay] = useState<{ day: number; amount: number } | null>(null);
   const dailyPanelRef = useRef<HTMLDivElement>(null);
   const monthlyPanelRef = useRef<HTMLDivElement>(null);
+  const hasAutoSelected = useRef(false);
 
   useEffect(() => {
     if (!selectedDay) return;
@@ -133,6 +134,28 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
   useEffect(() => {
     setDailyWindowStart(0);
   }, [currentMonth]);
+
+  // Auto-select today and scroll window so today is visible
+  useEffect(() => {
+    const now = new Date();
+    const cm = currentMonth ?? `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    const nowKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+    if (cm !== nowKey) {
+      hasAutoSelected.current = false;
+      return;
+    }
+    if (hasAutoSelected.current) return;
+
+    const today = now.getDate();
+    const size = window.innerWidth < 640 ? 7 : 12;
+    const maxStart = Math.max(0, dailyData.length - size);
+    const start = Math.max(0, Math.min(today - size, maxStart));
+
+    const todayAmount = dailyData.find((d) => d.day === String(today))?.amount || 0;
+    setSelectedDay({ day: today, amount: todayAmount });
+    setDailyWindowStart(start);
+    hasAutoSelected.current = true;
+  }, [currentMonth, dailyData]);
 
   const maxDailyStart = Math.max(0, dailyData.length - dailyWindowSize);
   const safeDailyStart = Math.min(dailyWindowStart, maxDailyStart);
