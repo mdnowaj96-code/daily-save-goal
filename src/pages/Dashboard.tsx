@@ -9,6 +9,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { LogOut, Loader2, CalendarCheck, History, FileDown } from "lucide-react";
 import { Search, X, CalendarDays, CalendarRange, TrendingUp } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { SlidersHorizontal } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
+import { EXPENSE_CATEGORIES, DEFAULT_CATEGORY, getCategoryMeta } from "@/lib/expenseCategories";
 import { getTimeDiffInBn } from "@/lib/utils";
 import {
   AlertDialog,
@@ -92,6 +97,19 @@ export default function Dashboard() {
   const [selectedMonth, setSelectedMonth] = useState<MonthlyHistoryRecord | null>(null);
   const [activeChart, setActiveChart] = useState<"daily" | "monthly" | "category">("daily");
   const [searchQuery, setSearchQuery] = useState("");
+  const [filterFrom, setFilterFrom] = useState("");
+  const [filterTo, setFilterTo] = useState("");
+  const [filterCategories, setFilterCategories] = useState<string[]>([]);
+  const [filterOpen, setFilterOpen] = useState(false);
+
+  const toggleFilterCategory = (key: string) =>
+    setFilterCategories((prev) => (prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]));
+  const clearFilters = () => {
+    setFilterFrom("");
+    setFilterTo("");
+    setFilterCategories([]);
+  };
+  const filtersActive = Boolean(filterFrom || filterTo || filterCategories.length);
 
   const reloadHistory = useCallback(async () => {
     if (!user) return;
@@ -120,12 +138,18 @@ export default function Dashboard() {
     }
   }, [user]);
 
-  // Search results across current month + history
+  // Search + filter results across current month + history
+  const searchActive = Boolean(searchQuery.trim()) || filtersActive;
   const searchResults = (() => {
     const q = searchQuery.trim().toLowerCase();
-    if (!q) return [] as Array<Expense & { monthLabel: string; isCurrent: boolean }>;
+    if (!searchActive) return [] as Array<Expense & { monthLabel: string; isCurrent: boolean }>;
     return expenses
-      .filter((e) => e.description.toLowerCase().includes(q))
+      .filter((e) => (q ? e.description.toLowerCase().includes(q) : true))
+      .filter((e) => (filterFrom ? e.date >= filterFrom : true))
+      .filter((e) => (filterTo ? e.date <= filterTo : true))
+      .filter((e) =>
+        filterCategories.length ? filterCategories.includes(e.category || DEFAULT_CATEGORY) : true
+      )
       .sort((a, b) => b.date.localeCompare(a.date))
       .map((e) => ({
         ...e,
@@ -134,6 +158,14 @@ export default function Dashboard() {
       }));
   })();
   const searchTotal = searchResults.reduce((s, e) => s + e.amount, 0);
+  const searchCategoryTotals = (() => {
+    const map = new Map<string, number>();
+    searchResults.forEach((e) => {
+      const k = e.category || DEFAULT_CATEGORY;
+      map.set(k, (map.get(k) ?? 0) + e.amount);
+    });
+    return Array.from(map.entries()).sort((a, b) => b[1] - a[1]);
+  })();
 
   // Load data
   useEffect(() => {
