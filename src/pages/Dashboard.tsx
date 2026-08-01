@@ -9,6 +9,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { LogOut, Loader2, CalendarCheck, History, FileDown } from "lucide-react";
 import { Search, X, CalendarDays, CalendarRange, TrendingUp } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { SlidersHorizontal } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
+import { EXPENSE_CATEGORIES, DEFAULT_CATEGORY, getCategoryMeta } from "@/lib/expenseCategories";
 import { getTimeDiffInBn } from "@/lib/utils";
 import {
   AlertDialog,
@@ -92,6 +97,19 @@ export default function Dashboard() {
   const [selectedMonth, setSelectedMonth] = useState<MonthlyHistoryRecord | null>(null);
   const [activeChart, setActiveChart] = useState<"daily" | "monthly" | "category">("daily");
   const [searchQuery, setSearchQuery] = useState("");
+  const [filterFrom, setFilterFrom] = useState("");
+  const [filterTo, setFilterTo] = useState("");
+  const [filterCategories, setFilterCategories] = useState<string[]>([]);
+  const [filterOpen, setFilterOpen] = useState(false);
+
+  const toggleFilterCategory = (key: string) =>
+    setFilterCategories((prev) => (prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]));
+  const clearFilters = () => {
+    setFilterFrom("");
+    setFilterTo("");
+    setFilterCategories([]);
+  };
+  const filtersActive = Boolean(filterFrom || filterTo || filterCategories.length);
 
   const reloadHistory = useCallback(async () => {
     if (!user) return;
@@ -120,12 +138,18 @@ export default function Dashboard() {
     }
   }, [user]);
 
-  // Search results across current month + history
+  // Search + filter results across current month + history
+  const searchActive = Boolean(searchQuery.trim()) || filtersActive;
   const searchResults = (() => {
     const q = searchQuery.trim().toLowerCase();
-    if (!q) return [] as Array<Expense & { monthLabel: string; isCurrent: boolean }>;
+    if (!searchActive) return [] as Array<Expense & { monthLabel: string; isCurrent: boolean }>;
     return expenses
-      .filter((e) => e.description.toLowerCase().includes(q))
+      .filter((e) => (q ? e.description.toLowerCase().includes(q) : true))
+      .filter((e) => (filterFrom ? e.date >= filterFrom : true))
+      .filter((e) => (filterTo ? e.date <= filterTo : true))
+      .filter((e) =>
+        filterCategories.length ? filterCategories.includes(e.category || DEFAULT_CATEGORY) : true
+      )
       .sort((a, b) => b.date.localeCompare(a.date))
       .map((e) => ({
         ...e,
@@ -134,6 +158,14 @@ export default function Dashboard() {
       }));
   })();
   const searchTotal = searchResults.reduce((s, e) => s + e.amount, 0);
+  const searchCategoryTotals = (() => {
+    const map = new Map<string, number>();
+    searchResults.forEach((e) => {
+      const k = e.category || DEFAULT_CATEGORY;
+      map.set(k, (map.get(k) ?? 0) + e.amount);
+    });
+    return Array.from(map.entries()).sort((a, b) => b[1] - a[1]);
+  })();
 
   // Load data
   useEffect(() => {
@@ -487,26 +519,91 @@ export default function Dashboard() {
 
       <main className="max-w-2xl mx-auto px-4 py-6 flex flex-col gap-6">
         <div className="flex flex-col gap-2">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-            <Input
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="খরচ খুঁজুন (বর্তমান মাস ও ইতিহাসসহ)..."
-              className="pl-9 pr-9"
-            />
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={() => setSearchQuery("")}
-                className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 rounded-md flex items-center justify-center text-muted-foreground hover:bg-muted"
-                aria-label="সার্চ মুছুন"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            )}
+          <div className="flex items-center gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+              <Input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="খরচ খুঁজুন (বর্তমান মাস ও ইতিহাসসহ)..."
+                className="pl-9 pr-9"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6 rounded-md flex items-center justify-center text-muted-foreground hover:bg-muted"
+                  aria-label="সার্চ মুছুন"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+            <Popover open={filterOpen} onOpenChange={setFilterOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="icon" className="relative shrink-0" aria-label="ফিল্টার">
+                  <SlidersHorizontal className="h-4 w-4" />
+                  {filtersActive && (
+                    <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-primary" />
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-[min(20rem,90vw)] p-4 flex flex-col gap-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-semibold">ফিল্টার</span>
+                  {filtersActive && (
+                    <button type="button" onClick={clearFilters} className="text-xs text-destructive font-medium">
+                      রিসেট
+                    </button>
+                  )}
+                </div>
+                <div className="flex flex-col gap-2">
+                  <span className="text-xs font-medium text-muted-foreground">কাস্টম তারিখ</span>
+                  <div className="flex items-center gap-2">
+                    <Input type="date" value={filterFrom} onChange={(e) => setFilterFrom(e.target.value)} className="h-9 text-xs" />
+                    <span className="text-xs text-muted-foreground">থেকে</span>
+                    <Input type="date" value={filterTo} onChange={(e) => setFilterTo(e.target.value)} className="h-9 text-xs" />
+                  </div>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <span className="text-xs font-medium text-muted-foreground">খাত</span>
+                  <div className="grid grid-cols-1 gap-1.5 max-h-52 overflow-y-auto pr-1">
+                    {EXPENSE_CATEGORIES.map((c) => (
+                      <label key={c.key} className="flex items-center gap-2 text-sm cursor-pointer rounded-md px-1 py-1 hover:bg-muted/60">
+                        <Checkbox
+                          checked={filterCategories.includes(c.key)}
+                          onCheckedChange={() => toggleFilterCategory(c.key)}
+                        />
+                        <span>{c.emoji} {c.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+                <Button size="sm" onClick={() => setFilterOpen(false)}>প্রয়োগ করুন</Button>
+              </PopoverContent>
+            </Popover>
           </div>
-          {searchQuery.trim() && (
+          {filtersActive && (
+            <div className="flex flex-wrap gap-1.5">
+              {(filterFrom || filterTo) && (
+                <Badge variant="secondary" className="gap-1 text-[10px] font-medium">
+                  {filterFrom ? new Date(filterFrom).toLocaleDateString("bn-BD") : "শুরু"} — {filterTo ? new Date(filterTo).toLocaleDateString("bn-BD") : "শেষ"}
+                  <button type="button" onClick={() => { setFilterFrom(""); setFilterTo(""); }} aria-label="তারিখ ফিল্টার মুছুন">
+                    <X className="h-3 w-3" />
+                  </button>
+                </Badge>
+              )}
+              {filterCategories.map((k) => (
+                <Badge key={k} variant="secondary" className="gap-1 text-[10px] font-medium">
+                  {getCategoryMeta(k).emoji} {getCategoryMeta(k).label}
+                  <button type="button" onClick={() => toggleFilterCategory(k)} aria-label="খাত ফিল্টার মুছুন">
+                    <X className="h-3 w-3" />
+                  </button>
+                </Badge>
+              ))}
+            </div>
+          )}
+          {searchActive && (
             <div className="rounded-xl border border-border/60 gradient-card shadow-soft overflow-hidden">
               <div className="flex items-center justify-between px-4 py-2 bg-muted/40 border-b border-border/40">
                 <span className="text-xs font-semibold text-foreground">
@@ -517,11 +614,25 @@ export default function Dashboard() {
               {searchResults.length === 0 ? (
                 <p className="text-center text-sm text-muted-foreground py-6">কোনো ফলাফল পাওয়া যায়নি</p>
               ) : (
+                <>
+                {searchCategoryTotals.length > 0 && (
+                  <div className="px-4 py-2 border-b border-border/40 bg-muted/20 flex flex-col gap-1">
+                    <span className="text-[10px] font-semibold text-muted-foreground">খাতওয়ারি মোট</span>
+                    {searchCategoryTotals.map(([k, v]) => (
+                      <div key={k} className="flex items-center justify-between text-xs">
+                        <span className="text-foreground">{getCategoryMeta(k).emoji} {getCategoryMeta(k).label}</span>
+                        <span className="font-semibold">৳{v.toLocaleString("bn-BD")}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
                 <div className="max-h-80 overflow-y-auto divide-y">
                   {searchResults.map((e) => (
                     <div key={e.id} className="px-4 py-2.5 flex items-center justify-between gap-2">
                       <div className="flex flex-col min-w-0">
-                        <span className="text-sm text-foreground truncate">{e.description}</span>
+                        <span className="text-sm text-foreground truncate">
+                          {getCategoryMeta(e.category || DEFAULT_CATEGORY).emoji} {e.description}
+                        </span>
                         <span className="text-[10px] text-muted-foreground">
                           {new Date(e.date).toLocaleDateString("bn-BD", { day: "numeric", month: "long", year: "numeric" })}
                           {" · "}
@@ -537,6 +648,7 @@ export default function Dashboard() {
                     </div>
                   ))}
                 </div>
+                </>
               )}
             </div>
           )}
