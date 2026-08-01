@@ -63,6 +63,7 @@ const toBnDigits = (s: string | number) =>
 
 export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteExpense, onEditExpense, onTabChange, salary, allExpenses }: ExpenseChartsProps) {
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
+  const [openMonthCat, setOpenMonthCat] = useState<string | null>(null);
   const [openCategory, setOpenCategory] = useState<string | null>(null);
   const [selectedDay, setSelectedDay] = useState<{ day: number; amount: number } | null>(null);
   const dailyPanelRef = useRef<HTMLDivElement>(null);
@@ -399,19 +400,44 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
                       {monthCatList.length > 0 ? (
                         <div className="flex flex-col gap-1.5">
                           {monthCatList.map((cat) => (
-                            <div key={cat.key} className="flex items-center justify-between text-xs">
-                              <div className="flex items-center gap-1.5 min-w-0">
-                                <span className="shrink-0">{cat.emoji}</span>
-                                <span className="text-foreground truncate">{cat.name}</span>
-                              </div>
-                              <div className="flex flex-col items-end leading-tight shrink-0">
-                                <span className="font-medium text-foreground whitespace-nowrap">
-                                  {toBnDigits(Math.round((cat.value / totalAmount) * 100))}%
-                                </span>
-                                <span className="text-[10px] text-muted-foreground whitespace-nowrap">
-                                  ৳{cat.value.toLocaleString("bn-BD")}
-                                </span>
-                              </div>
+                            <div key={cat.key} className="flex flex-col">
+                              <button
+                                type="button"
+                                onClick={() => setOpenMonthCat(openMonthCat === cat.key ? null : cat.key)}
+                                className="flex items-center justify-between text-xs w-full py-0.5 hover:bg-muted/50 rounded"
+                              >
+                                <div className="flex items-center gap-1.5 min-w-0">
+                                  <span className="shrink-0">{cat.emoji}</span>
+                                  <span className="text-foreground truncate">{cat.name}</span>
+                                  <ChevronDown className={`h-3 w-3 text-muted-foreground transition-transform shrink-0 ${openMonthCat === cat.key ? "rotate-180" : ""}`} />
+                                </div>
+                                <div className="flex flex-col items-end leading-tight shrink-0">
+                                  <span className="font-medium text-foreground whitespace-nowrap">
+                                    {toBnDigits(Math.round((cat.value / totalAmount) * 100))}%
+                                  </span>
+                                  <span className="text-[10px] text-muted-foreground whitespace-nowrap">
+                                    ৳{cat.value.toLocaleString("bn-BD")}
+                                  </span>
+                                </div>
+                              </button>
+                              {openMonthCat === cat.key && (
+                                <div className="mt-1 mb-1 ml-3 pl-2 border-l border-border/60 max-h-48 overflow-y-auto flex flex-col gap-1">
+                                  {monthExpenses
+                                    .filter((e) => (e.category || DEFAULT_CATEGORY) === cat.key)
+                                    .sort((a, b) => (a.date < b.date ? 1 : -1))
+                                    .map((e, i) => (
+                                      <div key={i} className="flex items-start justify-between gap-2 text-[11px]">
+                                        <div className="flex flex-col min-w-0">
+                                          <span className="text-foreground truncate">{e.description}</span>
+                                          <span className="text-[10px] text-muted-foreground">
+                                            {new Date(e.date).toLocaleDateString("bn-BD", { day: "numeric", month: "long" })}
+                                          </span>
+                                        </div>
+                                        <span className="font-medium shrink-0">৳{e.amount.toLocaleString("bn-BD")}</span>
+                                      </div>
+                                    ))}
+                                </div>
+                              )}
                             </div>
                           ))}
                         </div>

@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { LogOut, Loader2, CalendarCheck, History, FileDown } from "lucide-react";
 import { Search, X, CalendarDays, CalendarRange, TrendingUp } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { SlidersHorizontal } from "lucide-react";
+import { SlidersHorizontal, ChevronDown } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
@@ -100,6 +100,7 @@ export default function Dashboard() {
   const [filterFrom, setFilterFrom] = useState("");
   const [filterTo, setFilterTo] = useState("");
   const [filterCategories, setFilterCategories] = useState<string[]>([]);
+  const [openSearchCat, setOpenSearchCat] = useState<string | null>(null);
   const [filterOpen, setFilterOpen] = useState(false);
 
   const toggleFilterCategory = (key: string) =>
@@ -619,9 +620,35 @@ export default function Dashboard() {
                   <div className="px-4 py-2 border-b border-border/40 bg-muted/20 flex flex-col gap-1">
                     <span className="text-[10px] font-semibold text-muted-foreground">খাতওয়ারি মোট</span>
                     {searchCategoryTotals.map(([k, v]) => (
-                      <div key={k} className="flex items-center justify-between text-xs">
-                        <span className="text-foreground">{getCategoryMeta(k).emoji} {getCategoryMeta(k).label}</span>
-                        <span className="font-semibold">৳{v.toLocaleString("bn-BD")}</span>
+                      <div key={k} className="flex flex-col">
+                        <button
+                          type="button"
+                          onClick={() => setOpenSearchCat(openSearchCat === k ? null : k)}
+                          className="flex items-center justify-between text-xs w-full py-0.5 hover:bg-muted/40 rounded"
+                        >
+                          <span className="text-foreground text-left">{getCategoryMeta(k).emoji} {getCategoryMeta(k).label}</span>
+                          <span className="flex items-center gap-1">
+                            <span className="font-semibold">৳{v.toLocaleString("bn-BD")}</span>
+                            <ChevronDown className={`h-3 w-3 text-muted-foreground transition-transform ${openSearchCat === k ? "rotate-180" : ""}`} />
+                          </span>
+                        </button>
+                        {openSearchCat === k && (
+                          <div className="mt-1 mb-1 ml-2 pl-2 border-l border-border/60 max-h-52 overflow-y-auto flex flex-col gap-1">
+                            {searchResults
+                              .filter((e) => (e.category || DEFAULT_CATEGORY) === k)
+                              .map((e) => (
+                                <div key={e.id} className="flex items-start justify-between gap-2 text-[11px]">
+                                  <div className="flex flex-col min-w-0">
+                                    <span className="text-foreground truncate">{e.description}</span>
+                                    <span className="text-[10px] text-muted-foreground">
+                                      {new Date(e.date).toLocaleDateString("bn-BD", { day: "numeric", month: "long", year: "numeric" })}
+                                    </span>
+                                  </div>
+                                  <span className="font-medium shrink-0">৳{e.amount.toLocaleString("bn-BD")}</span>
+                                </div>
+                              ))}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
