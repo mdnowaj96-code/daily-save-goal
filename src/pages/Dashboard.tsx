@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { LogOut, Loader2, CalendarCheck, History, FileDown } from "lucide-react";
 import { Search, X, CalendarDays, CalendarRange, TrendingUp } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { SlidersHorizontal } from "lucide-react";
+import { SlidersHorizontal, ChevronDown } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
