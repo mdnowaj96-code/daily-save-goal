@@ -3,7 +3,8 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ExpenseList } from "@/components/ExpenseList";
-import { EXPENSE_CATEGORIES, DEFAULT_CATEGORY, getCategoryMeta } from "@/lib/expenseCategories";
+import { DEFAULT_CATEGORY, getCategoryMeta } from "@/lib/expenseCategories";
+import { useCategories } from "@/hooks/useCategories";
 import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface Expense {
@@ -62,6 +63,7 @@ const toBnDigits = (s: string | number) =>
   String(s).replace(/[0-9]/g, (d) => "০১২৩৪৫৬৭৮৯"[+d]);
 
 export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteExpense, onEditExpense, onTabChange, salary, allExpenses }: ExpenseChartsProps) {
+  const { categories: EXPENSE_CATEGORIES } = useCategories();
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
   const [openMonthCat, setOpenMonthCat] = useState<string | null>(null);
   const [openCategory, setOpenCategory] = useState<string | null>(null);
