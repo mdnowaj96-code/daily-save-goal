@@ -12,7 +12,8 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { EXPENSE_CATEGORIES, DEFAULT_CATEGORY, getCategoryMeta } from "@/lib/expenseCategories";
+import { DEFAULT_CATEGORY, getCategoryMeta } from "@/lib/expenseCategories";
+import { useCategories } from "@/hooks/useCategories";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,6 +34,7 @@ interface ExpenseListProps {
 }
 
 export function ExpenseList({ expenses, onDelete, onEdit, salary = 0 }: ExpenseListProps) {
+  const { categories: EXPENSE_CATEGORIES } = useCategories();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editDate, setEditDate] = useState("");
   const [editDesc, setEditDesc] = useState("");

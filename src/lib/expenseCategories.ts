@@ -20,8 +20,18 @@ export const EXPENSE_CATEGORIES: ExpenseCategory[] = [
 
 export const DEFAULT_CATEGORY = "অন্যান্য";
 
+// Runtime registry (defaults + user's custom categories). Kept in sync by CategoriesProvider.
+let REGISTRY: ExpenseCategory[] = [...EXPENSE_CATEGORIES];
+
+export const setCategoryRegistry = (list: ExpenseCategory[]) => {
+  REGISTRY = list;
+};
+
+export const getCategoryRegistry = (): ExpenseCategory[] => REGISTRY;
+
 export const getCategoryMeta = (key: string): ExpenseCategory => {
   return (
+    REGISTRY.find((c) => c.key === key) ??
     EXPENSE_CATEGORIES.find((c) => c.key === key) ?? {
       key,
       label: key,

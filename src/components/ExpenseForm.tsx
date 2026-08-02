@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { EXPENSE_CATEGORIES, DEFAULT_CATEGORY } from "@/lib/expenseCategories";
+import { useCategories } from "@/hooks/useCategories";
+import { ManageCategoriesDialog } from "@/components/ManageCategoriesDialog";
 
 interface ExpenseFormProps {
   onAdd: (date: string, description: string, amount: number, category: string) => void;
@@ -29,6 +31,7 @@ function msUntilBdMidnight(): number {
 }
 
 export function ExpenseForm({ onAdd }: ExpenseFormProps) {
+  const { categories } = useCategories();
   const [date, setDate] = useState(getBdToday());
   const userEditedRef = useRef(false);
   const [description, setDescription] = useState("");
@@ -104,19 +107,22 @@ export function ExpenseForm({ onAdd }: ExpenseFormProps) {
           className="text-sm"
         />
       </div>
-      <Select value={category} onValueChange={setCategory}>
-        <SelectTrigger className="text-sm h-10">
-          <SelectValue placeholder="ক্যাটাগরি নির্বাচন করুন" />
-        </SelectTrigger>
-        <SelectContent>
-          {EXPENSE_CATEGORIES.map((c) => (
-            <SelectItem key={c.key} value={c.key}>
-              <span className="mr-2">{c.emoji}</span>
-              {c.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <div className="flex gap-2">
+        <Select value={category} onValueChange={setCategory}>
+          <SelectTrigger className="text-sm h-10 flex-1">
+            <SelectValue placeholder="ক্যাটাগরি নির্বাচন করুন" />
+          </SelectTrigger>
+          <SelectContent>
+            {categories.map((c) => (
+              <SelectItem key={c.key} value={c.key}>
+                <span className="mr-2">{c.emoji}</span>
+                {c.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <ManageCategoriesDialog />
+      </div>
       <Button type="submit" className="w-full sm:w-auto sm:self-end gap-2 gradient-primary border-0 shadow-glow hover:opacity-90 transition-opacity">
         <Plus className="h-4 w-4" />
         যোগ করুন

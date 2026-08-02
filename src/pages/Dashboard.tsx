@@ -13,7 +13,8 @@ import { SlidersHorizontal, ChevronDown } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { EXPENSE_CATEGORIES, DEFAULT_CATEGORY, getCategoryMeta } from "@/lib/expenseCategories";
+import { DEFAULT_CATEGORY, getCategoryMeta } from "@/lib/expenseCategories";
+import { useCategories } from "@/hooks/useCategories";
 import { getTimeDiffInBn } from "@/lib/utils";
 import {
   AlertDialog,
@@ -86,6 +87,7 @@ const currentMonthKey = () => {
 };
 
 export default function Dashboard() {
+  const { categories: EXPENSE_CATEGORIES } = useCategories();
   const { user, signOut } = useAuth();
   const [settings, setSettings] = useState<SalarySettings>({
     salary: 0, needsPercent: 40, savingsPercent: 12, wantsPercent: 48, currentMonth: currentMonthKey(),
