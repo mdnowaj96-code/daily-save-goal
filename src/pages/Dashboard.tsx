@@ -262,8 +262,9 @@ export default function Dashboard() {
 
   const weekStart = (() => {
     const d = new Date();
-    const day = d.getDay(); // 0=Sun
-    d.setDate(d.getDate() - day);
+    const day = d.getDay(); // 0=Sun ... 6=Sat
+    const diff = (day + 1) % 7; // days since last Saturday
+    d.setDate(d.getDate() - diff);
     d.setHours(0, 0, 0, 0);
     return d;
   })();
@@ -274,14 +275,11 @@ export default function Dashboard() {
     })
     .reduce((s, e) => s + e.amount, 0);
 
-  const daysElapsed = (() => {
-    const now = new Date();
-    const nowKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-    if (settings.currentMonth === nowKey) return now.getDate();
+  const daysInMonth = (() => {
     const [yy, mm] = settings.currentMonth.split("-").map(Number);
     return new Date(yy, mm, 0).getDate();
   })();
-  const dailyAverage = daysElapsed > 0 ? Math.round(totalExpenses / daysElapsed) : 0;
+  const dailyAverage = daysInMonth > 0 ? Math.round(totalExpenses / daysInMonth) : 0;
 
   const handleAddExpense = useCallback(async (date: string, description: string, amount: number, category: string) => {
     if (!user) return;
