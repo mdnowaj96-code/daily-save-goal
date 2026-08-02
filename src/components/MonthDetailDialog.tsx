@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Trash2, Pencil, Check, X, Plus, Loader2, FileDown, TrendingUp, ArrowUp, ArrowDown } from "lucide-react";
 import { toast } from "sonner";
 import { generatePdfReport } from "@/lib/generatePdfReport";
-import { EXPENSE_CATEGORIES, DEFAULT_CATEGORY, getCategoryMeta } from "@/lib/expenseCategories";
+import { DEFAULT_CATEGORY, getCategoryMeta } from "@/lib/expenseCategories";
+import { useCategories } from "@/hooks/useCategories";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   AlertDialog,
@@ -46,6 +47,7 @@ export function MonthDetailDialog({
   open, onOpenChange, userId, month, monthLabel,
   salary, needsPercent, savingsPercent, wantsPercent, onSnapshotUpdated,
 }: MonthDetailDialogProps) {
+  const { categories: EXPENSE_CATEGORIES } = useCategories();
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
