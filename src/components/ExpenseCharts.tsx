@@ -577,7 +577,7 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
                             <button
                               type="button"
                               onClick={() => { setEditTargetCat(item.key); setTargetInput(target ? String(target) : ""); }}
-                              className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
+                              className="flex items-center gap-1 font-bold text-muted-foreground hover:text-foreground transition-colors"
                             >
                               <Target className="h-3 w-3" />
                               {target > 0 ? `টার্গেট ৳${target.toLocaleString("bn-BD")}` : "টার্গেট সেট করুন"}
@@ -648,7 +648,7 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
                   return (
                     <div className="rounded-xl border border-border/60 gradient-card shadow-soft p-2.5 mt-1 flex flex-col gap-1.5">
                       <div className="flex items-center justify-between text-xs">
-                        <span className="text-muted-foreground">মোট টার্গেট</span>
+                        <span className="font-bold text-muted-foreground">মোট টার্গেট</span>
                         <span className="font-bold text-foreground">৳{totalTarget.toLocaleString("bn-BD")}</span>
                       </div>
                       <div className="flex items-center justify-between text-xs">
