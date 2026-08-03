@@ -657,7 +657,7 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
                       </div>
                       <div className="flex items-center justify-between text-xs border-t pt-1.5">
                         <span className="text-muted-foreground">{diff >= 0 ? "কম খরচ হয়েছে" : "বেশি খরচ হয়েছে"}</span>
-                        <span className={`font-extrabold ${diff >= 0 ? "text-success" : "text-destructive"}`}>
+                        <span className={`font-extrabold ${diff >= 0 ? "text-primary" : "text-destructive"}`}>
                           ৳{Math.abs(diff).toLocaleString("bn-BD")}
                         </span>
                       </div>
