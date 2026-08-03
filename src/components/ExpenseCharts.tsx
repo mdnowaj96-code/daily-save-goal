@@ -499,7 +499,28 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
                 );
               })()}
               <div className="w-full mt-3 flex flex-col gap-1.5">
-                {categoryData.map((item, i) => (
+                {(() => {
+                  const extra = Object.keys(targets)
+                    .filter((k) => !categoryData.some((c) => c.key === k))
+                    .map((k) => {
+                      const meta = getCategoryMeta(k);
+                      return { key: k, name: meta.label, emoji: meta.emoji, value: 0, items: [] as Expense[] };
+                    });
+                  return [...categoryData, ...extra];
+                })().map((item, i) => {
+                  const target = targets[item.key] ?? 0;
+                  const remaining = target - item.value;
+                  const usedPct = target > 0 ? Math.min(100, (item.value / target) * 100) : 0;
+                  const leftPct = Math.max(0, 100 - usedPct);
+                  const over = target > 0 && item.value > target;
+                  const barColor = over
+                    ? "hsl(0, 75%, 55%)"
+                    : leftPct > 50
+                      ? "hsl(160, 65%, 45%)"
+                      : leftPct > 20
+                        ? "hsl(38, 95%, 52%)"
+                        : "hsl(15, 85%, 55%)";
+                  return (
                   <div key={item.key} className="rounded-md bg-muted/40 overflow-hidden">
                     <button
                       type="button"
@@ -524,6 +545,69 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
                         <ChevronDown className={`h-3.5 w-3.5 text-muted-foreground transition-transform ${openCategory === item.key ? "rotate-180" : ""}`} />
                       </div>
                     </button>
+                    {/* Target + progress */}
+                    <div className="px-2 pb-2 pt-0.5">
+                      {editTargetCat === item.key ? (
+                        <div className="flex items-center gap-1.5">
+                          <Input
+                            type="number"
+                            autoFocus
+                            value={targetInput}
+                            onChange={(e) => setTargetInput(e.target.value)}
+                            placeholder="টার্গেট (৳)"
+                            className="h-7 text-xs"
+                          />
+                          <Button
+                            size="icon"
+                            className="h-7 w-7 shrink-0"
+                            onClick={async () => {
+                              await setTarget(item.key, Number(targetInput) || 0);
+                              setEditTargetCat(null);
+                            }}
+                          >
+                            <Check className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button size="icon" variant="outline" className="h-7 w-7 shrink-0" onClick={() => setEditTargetCat(null)}>
+                            <X className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="flex items-center justify-between gap-2 text-[10px] mb-1">
+                            <button
+                              type="button"
+                              onClick={() => { setEditTargetCat(item.key); setTargetInput(target ? String(target) : ""); }}
+                              className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
+                            >
+                              <Target className="h-3 w-3" />
+                              {target > 0 ? `টার্গেট ৳${target.toLocaleString("bn-BD")}` : "টার্গেট সেট করুন"}
+                            </button>
+                            {target > 0 && (
+                              <span className={`font-semibold ${over ? "text-destructive" : "text-foreground"}`}>
+                                {over
+                                  ? `৳${Math.abs(remaining).toLocaleString("bn-BD")} বেশি`
+                                  : `৳${remaining.toLocaleString("bn-BD")} বাকি`}
+                              </span>
+                            )}
+                          </div>
+                          {target > 0 && (
+                            <div
+                              className="relative h-2 w-full rounded-full overflow-hidden"
+                              style={{ background: `linear-gradient(90deg, ${barColor}22, ${barColor}33)`, boxShadow: `inset 0 0 6px ${barColor}44` }}
+                            >
+                              <div
+                                className="h-full rounded-full transition-all duration-700 ease-out"
+                                style={{
+                                  width: `${over ? 100 : leftPct}%`,
+                                  background: `linear-gradient(90deg, ${barColor}, ${barColor}cc)`,
+                                  boxShadow: `0 0 8px ${barColor}88`,
+                                }}
+                              />
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
                     {openCategory === item.key && (
                       <div className="border-t border-border/40 bg-background/50 divide-y divide-border/30">
                         {item.items
@@ -543,7 +627,8 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
                       </div>
                     )}
                   </div>
-                ))}
+                  );
+                })}
                 <div className="flex items-center justify-between gap-2 text-xs px-2 py-1.5 mt-1 border-t pt-2">
                   <span className="font-semibold text-muted-foreground">মোট</span>
                   <div className="flex flex-col items-end leading-tight">
@@ -555,6 +640,30 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
                     ) : null}
                   </div>
                 </div>
+                {(() => {
+                  const totalTarget = Object.values(targets).reduce((s, v) => s + v, 0);
+                  if (totalTarget <= 0) return null;
+                  const totalActual = categoryData.reduce((s, c) => s + c.value, 0);
+                  const diff = totalTarget - totalActual;
+                  return (
+                    <div className="rounded-xl border border-border/60 gradient-card shadow-soft p-2.5 mt-1 flex flex-col gap-1.5">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-muted-foreground">মোট টার্গেট</span>
+                        <span className="font-bold text-foreground">৳{totalTarget.toLocaleString("bn-BD")}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-muted-foreground">প্রকৃত খরচ</span>
+                        <span className="font-bold text-destructive">৳{totalActual.toLocaleString("bn-BD")}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs border-t pt-1.5">
+                        <span className="text-muted-foreground">{diff >= 0 ? "কম খরচ হয়েছে" : "বেশি খরচ হয়েছে"}</span>
+                        <span className={`font-extrabold ${diff >= 0 ? "text-success" : "text-destructive"}`}>
+                          ৳{Math.abs(diff).toLocaleString("bn-BD")}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             </div>
             )}
