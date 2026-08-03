@@ -5,7 +5,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ExpenseList } from "@/components/ExpenseList";
 import { DEFAULT_CATEGORY, getCategoryMeta } from "@/lib/expenseCategories";
 import { useCategories } from "@/hooks/useCategories";
-import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { useCategoryTargets } from "@/hooks/useCategoryTargets";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { ChevronDown, ChevronLeft, ChevronRight, Target, Check, X } from "lucide-react";
 
 interface Expense {
   id: string;
@@ -64,6 +67,9 @@ const toBnDigits = (s: string | number) =>
 
 export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteExpense, onEditExpense, onTabChange, salary, allExpenses }: ExpenseChartsProps) {
   const { categories: EXPENSE_CATEGORIES } = useCategories();
+  const { targets, setTarget } = useCategoryTargets();
+  const [editTargetCat, setEditTargetCat] = useState<string | null>(null);
+  const [targetInput, setTargetInput] = useState("");
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
   const [openMonthCat, setOpenMonthCat] = useState<string | null>(null);
   const [openCategory, setOpenCategory] = useState<string | null>(null);
