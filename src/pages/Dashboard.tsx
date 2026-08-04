@@ -536,6 +536,27 @@ export default function Dashboard() {
       <main className="max-w-2xl mx-auto px-4 py-6 flex flex-col gap-6">
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-2">
+            <Popover open={menuOpen} onOpenChange={setMenuOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="icon" className="shrink-0" aria-label="মেনু">
+                  <Menu className="h-4 w-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="start" className="w-48 p-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    setSavingsInput(savingsAmount ? String(savingsAmount) : "");
+                    setSavingsDialogOpen(true);
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-muted"
+                >
+                  <PiggyBank className="h-4 w-4 text-muted-foreground" />
+                  সঞ্চয়
+                </button>
+              </PopoverContent>
+            </Popover>
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
               <Input
