@@ -10,6 +10,7 @@ import { LogOut, Loader2, CalendarCheck, History, FileDown } from "lucide-react"
 import { Search, X, CalendarDays, CalendarRange, TrendingUp } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { SlidersHorizontal, ChevronDown } from "lucide-react";
+import { Menu, PiggyBank } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
@@ -104,6 +105,9 @@ export default function Dashboard() {
   const [filterTo, setFilterTo] = useState("");
   const [filterCategories, setFilterCategories] = useState<string[]>([]);
   const [openSearchCat, setOpenSearchCat] = useState<string | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [savingsDialogOpen, setSavingsDialogOpen] = useState(false);
+  const [savingsInput, setSavingsInput] = useState("");
   const [filterOpen, setFilterOpen] = useState(false);
 
   const toggleFilterCategory = (key: string) =>
@@ -532,6 +536,27 @@ export default function Dashboard() {
       <main className="max-w-2xl mx-auto px-4 py-6 flex flex-col gap-6">
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-2">
+            <Popover open={menuOpen} onOpenChange={setMenuOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="icon" className="shrink-0" aria-label="মেনু">
+                  <Menu className="h-4 w-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="start" className="w-48 p-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    setSavingsInput(savingsAmount ? String(savingsAmount) : "");
+                    setSavingsDialogOpen(true);
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-muted"
+                >
+                  <PiggyBank className="h-4 w-4 text-muted-foreground" />
+                  সঞ্চয়
+                </button>
+              </PopoverContent>
+            </Popover>
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
               <Input
@@ -798,6 +823,42 @@ export default function Dashboard() {
           </AlertDialogContent>
         </AlertDialog>
       </main>
+
+      <Dialog open={savingsDialogOpen} onOpenChange={setSavingsDialogOpen}>
+        <DialogContent className="max-w-[min(22rem,92vw)]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <PiggyBank className="h-4 w-4" /> সঞ্চয়
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col gap-3">
+            <p className="text-xs text-muted-foreground">
+              চলতি মাসের বেতন ৳{settings.salary.toLocaleString("bn-BD")} — সঞ্চয়ের পরিমাণ লিখুন
+            </p>
+            <Input
+              type="number"
+              inputMode="decimal"
+              value={savingsInput}
+              onChange={(e) => setSavingsInput(e.target.value)}
+              placeholder="টাকার পরিমাণ"
+            />
+            <Button
+              onClick={() => {
+                const amt = parseFloat(savingsInput);
+                if (isNaN(amt) || amt < 0) { toast.error("সঠিক পরিমাণ দিন"); return; }
+                if (settings.salary <= 0) { toast.error("আগে বেতন ইনপুট দিন"); return; }
+                if (amt > settings.salary) { toast.error("বেতনের বেশি হতে পারবে না"); return; }
+                const pct = (amt / settings.salary) * 100;
+                updateSettings({ ...settings, savingsPercent: pct });
+                setSavingsDialogOpen(false);
+                toast.success("সঞ্চয় সংরক্ষিত হয়েছে");
+              }}
+            >
+              সংরক্ষণ করুন
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {selectedMonth && user && (
         <MonthDetailDialog
