@@ -323,9 +323,17 @@ export default function Dashboard() {
     setExpenses((prev) => prev.map((e) => e.id === id ? { ...e, date, description, amount, month, category } : e));
   }, [user]);
 
+  const handleSearchEdit = useCallback(async (id: string, date: string, description: string, amount: number, category: string) => {
+    await handleEditExpense(id, date, description, amount, category);
+    await reloadHistory();
+  }, [handleEditExpense, reloadHistory]);
+
+  const handleSearchDelete = useCallback(async (id: string) => {
+    await handleDeleteExpense(id);
+    await reloadHistory();
+  }, [handleDeleteExpense, reloadHistory]);
+
   const handleCloseMonth = useCallback(async () => {
-    return _handleCloseMonth();
-  }, []);
     if (!user) return;
     // Save closed month snapshot
     const { error: histErr } = await supabase.from("monthly_history").upsert({
