@@ -461,11 +461,10 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
           </TabsContent>
 
           <TabsContent value="category">
-            {categoryData.length === 0 ? (
-              <p className="text-center text-xs text-muted-foreground py-8">কোনো ডেটা নেই</p>
-            ) : (
             <div className="flex flex-col items-center">
-              {(() => {
+              {categoryData.length === 0 ? (
+                <p className="text-center text-xs text-muted-foreground py-4">এখনো কোনো খরচ যোগ হয়নি — নিচে টার্গেট সেট করতে পারেন</p>
+              ) : (() => {
                 const totalCat = categoryData.reduce((s, c) => s + c.value, 0);
                 return (
               <ResponsiveContainer width="100%" height={200}>
@@ -500,12 +499,14 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
               })()}
               <div className="w-full mt-3 flex flex-col gap-1.5">
                 {(() => {
-                  const extra = Object.keys(targets)
-                    .filter((k) => !categoryData.some((c) => c.key === k))
-                    .map((k) => {
-                      const meta = getCategoryMeta(k);
-                      return { key: k, name: meta.label, emoji: meta.emoji, value: 0, items: [] as Expense[] };
-                    });
+                  const extraKeys = [
+                    ...EXPENSE_CATEGORIES.map((c) => c.key),
+                    ...Object.keys(targets),
+                  ].filter((k, idx, arr) => arr.indexOf(k) === idx && !categoryData.some((c) => c.key === k));
+                  const extra = extraKeys.map((k) => {
+                    const meta = getCategoryMeta(k);
+                    return { key: k, name: meta.label, emoji: meta.emoji, value: 0, items: [] as Expense[] };
+                  });
                   return [...categoryData, ...extra];
                 })().map((item, i) => {
                   const target = targets[item.key] ?? 0;
