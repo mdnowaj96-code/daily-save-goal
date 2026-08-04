@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { DEFAULT_CATEGORY, getCategoryMeta } from "@/lib/expenseCategories";
 import { useCategories } from "@/hooks/useCategories";
 import { getTimeDiffInBn } from "@/lib/utils";
+import { SearchResultRow } from "@/components/SearchResultRow";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -323,6 +324,8 @@ export default function Dashboard() {
   }, [user]);
 
   const handleCloseMonth = useCallback(async () => {
+    return _handleCloseMonth();
+  }, []);
     if (!user) return;
     // Save closed month snapshot
     const { error: histErr } = await supabase.from("monthly_history").upsert({
