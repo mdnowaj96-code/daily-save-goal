@@ -10,6 +10,7 @@ import { LogOut, Loader2, CalendarCheck, History, FileDown } from "lucide-react"
 import { Search, X, CalendarDays, CalendarRange, TrendingUp } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { SlidersHorizontal, ChevronDown } from "lucide-react";
+import { Menu, PiggyBank } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
@@ -104,6 +105,9 @@ export default function Dashboard() {
   const [filterTo, setFilterTo] = useState("");
   const [filterCategories, setFilterCategories] = useState<string[]>([]);
   const [openSearchCat, setOpenSearchCat] = useState<string | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [savingsDialogOpen, setSavingsDialogOpen] = useState(false);
+  const [savingsInput, setSavingsInput] = useState("");
   const [filterOpen, setFilterOpen] = useState(false);
 
   const toggleFilterCategory = (key: string) =>
