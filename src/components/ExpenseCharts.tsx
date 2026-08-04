@@ -667,7 +667,6 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
                 })()}
               </div>
             </div>
-            )}
           </TabsContent>
         </Tabs>
       </CardContent>
