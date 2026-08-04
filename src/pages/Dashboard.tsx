@@ -824,6 +824,42 @@ export default function Dashboard() {
         </AlertDialog>
       </main>
 
+      <Dialog open={savingsDialogOpen} onOpenChange={setSavingsDialogOpen}>
+        <DialogContent className="max-w-[min(22rem,92vw)]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <PiggyBank className="h-4 w-4" /> সঞ্চয়
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col gap-3">
+            <p className="text-xs text-muted-foreground">
+              চলতি মাসের বেতন ৳{settings.salary.toLocaleString("bn-BD")} — সঞ্চয়ের পরিমাণ লিখুন
+            </p>
+            <Input
+              type="number"
+              inputMode="decimal"
+              value={savingsInput}
+              onChange={(e) => setSavingsInput(e.target.value)}
+              placeholder="টাকার পরিমাণ"
+            />
+            <Button
+              onClick={() => {
+                const amt = parseFloat(savingsInput);
+                if (isNaN(amt) || amt < 0) { toast.error("সঠিক পরিমাণ দিন"); return; }
+                if (settings.salary <= 0) { toast.error("আগে বেতন ইনপুট দিন"); return; }
+                if (amt > settings.salary) { toast.error("বেতনের বেশি হতে পারবে না"); return; }
+                const pct = (amt / settings.salary) * 100;
+                updateSettings({ ...settings, savingsPercent: pct });
+                setSavingsDialogOpen(false);
+                toast.success("সঞ্চয় সংরক্ষিত হয়েছে");
+              }}
+            >
+              সংরক্ষণ করুন
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {selectedMonth && user && (
         <MonthDetailDialog
           open={!!selectedMonth}
