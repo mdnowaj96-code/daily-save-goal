@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { DEFAULT_CATEGORY, getCategoryMeta } from "@/lib/expenseCategories";
 import { useCategories } from "@/hooks/useCategories";
 import { getTimeDiffInBn } from "@/lib/utils";
+import { SearchResultRow } from "@/components/SearchResultRow";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -321,6 +322,16 @@ export default function Dashboard() {
     }
     setExpenses((prev) => prev.map((e) => e.id === id ? { ...e, date, description, amount, month, category } : e));
   }, [user]);
+
+  const handleSearchEdit = useCallback(async (id: string, date: string, description: string, amount: number, category: string) => {
+    await handleEditExpense(id, date, description, amount, category);
+    await reloadHistory();
+  }, [handleEditExpense, reloadHistory]);
+
+  const handleSearchDelete = useCallback(async (id: string) => {
+    await handleDeleteExpense(id);
+    await reloadHistory();
+  }, [handleDeleteExpense, reloadHistory]);
 
   const handleCloseMonth = useCallback(async () => {
     if (!user) return;
@@ -655,26 +666,15 @@ export default function Dashboard() {
                 )}
                 <div className="max-h-80 overflow-y-auto divide-y">
                   {searchResults.map((e) => (
-                    <div key={e.id} className="px-4 py-2.5 flex items-center justify-between gap-2">
-                      <div className="flex flex-col min-w-0">
-                        <span className="text-sm text-foreground truncate">
-                          {getCategoryMeta(e.category || DEFAULT_CATEGORY).emoji} {e.description}
-                        </span>
-                        <span className="text-[10px] text-muted-foreground">
-                          {new Date(e.date).toLocaleDateString("bn-BD", { day: "numeric", month: "long", year: "numeric" })}
-                          {" · "}
-                          <span className={e.isCurrent ? "text-primary font-medium" : ""}>
-                            {e.isCurrent ? "বর্তমান মাস" : e.monthLabel}
-                          </span>
-                        </span>
-                        <span className="text-[10px] text-muted-foreground">
-                          {getTimeDiffInBn(e.date)}
-                        </span>
-                      </div>
-                      <span className="text-sm font-semibold text-foreground shrink-0">৳{e.amount.toLocaleString("bn-BD")}</span>
-                    </div>
+                    <SearchResultRow
+                      key={e.id}
+                      expense={e}
+                      onEdit={handleSearchEdit}
+                      onDelete={handleSearchDelete}
+                    />
                   ))}
                 </div>
+                <p className="px-4 py-1.5 text-[10px] text-muted-foreground bg-muted/20">টিপস: বামে সোয়াইপ করে এডিট/ডিলিট করুন</p>
                 </>
               )}
             </div>
