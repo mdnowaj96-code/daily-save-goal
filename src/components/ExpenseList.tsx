@@ -5,26 +5,8 @@ interface Expense {
   amount: number;
   category?: string;
 }
-import { Button } from "@/components/ui/button";
-import { Trash2, Pencil, Check, X } from "lucide-react";
-import { useState } from "react";
-import { Input } from "@/components/ui/input";
-import { toast } from "sonner";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DEFAULT_CATEGORY, getCategoryMeta } from "@/lib/expenseCategories";
-import { useCategories } from "@/hooks/useCategories";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+import { ExpenseRow } from "@/components/ExpenseRow";
 
 interface ExpenseListProps {
   expenses: Expense[];
@@ -34,32 +16,6 @@ interface ExpenseListProps {
 }
 
 export function ExpenseList({ expenses, onDelete, onEdit, salary = 0 }: ExpenseListProps) {
-  const { categories: EXPENSE_CATEGORIES } = useCategories();
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editDate, setEditDate] = useState("");
-  const [editDesc, setEditDesc] = useState("");
-  const [editAmount, setEditAmount] = useState("");
-  const [editCategory, setEditCategory] = useState<string>(DEFAULT_CATEGORY);
-
-  const startEdit = (e: Expense) => {
-    setEditingId(e.id);
-    setEditDate(e.date);
-    setEditDesc(e.description);
-    setEditAmount(String(e.amount));
-    setEditCategory(e.category || DEFAULT_CATEGORY);
-  };
-
-  const saveEdit = async () => {
-    if (!editingId || !onEdit) return;
-    const amt = parseFloat(editAmount);
-    if (!editDesc.trim() || isNaN(amt) || amt <= 0 || !editDate) {
-      toast.error("সঠিক তথ্য দিন");
-      return;
-    }
-    await onEdit(editingId, editDate, editDesc.trim(), amt, editCategory);
-    setEditingId(null);
-  };
-
   const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
 
   // Group by date
@@ -85,75 +41,7 @@ export function ExpenseList({ expenses, onDelete, onEdit, salary = 0 }: ExpenseL
         </div>
         <div className="divide-y">
           {grouped[date].map((expense) => (
-            <div key={expense.id} className="px-4 py-2.5">
-              {editingId === expense.id ? (
-                <div className="flex flex-col gap-1.5">
-                  <Input type="date" value={editDate} onChange={(e) => setEditDate(e.target.value)} className="text-xs h-8" />
-                  <Input value={editDesc} onChange={(e) => setEditDesc(e.target.value)} placeholder="বিবরণ" className="text-xs h-8" />
-                  <Input type="number" value={editAmount} onChange={(e) => setEditAmount(e.target.value)} placeholder="পরিমাণ" className="text-xs h-8" />
-                  <Select value={editCategory} onValueChange={setEditCategory}>
-                    <SelectTrigger className="text-xs h-8"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {EXPENSE_CATEGORIES.map((c) => (
-                        <SelectItem key={c.key} value={c.key}>{c.emoji} {c.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <div className="flex gap-1.5">
-                    <Button size="sm" onClick={saveEdit} className="h-7 gap-1 flex-1"><Check className="h-3 w-3" />সংরক্ষণ</Button>
-                    <Button size="sm" variant="outline" onClick={() => setEditingId(null)} className="h-7 gap-1"><X className="h-3 w-3" /></Button>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-foreground flex items-center gap-1.5 min-w-0">
-                    <span className="shrink-0">{getCategoryMeta(expense.category || DEFAULT_CATEGORY).emoji}</span>
-                    <span className="truncate">{expense.description}</span>
-                  </span>
-                  <div className="flex items-center gap-1">
-                    <span className="text-sm font-medium text-foreground">৳{expense.amount.toLocaleString("bn-BD")}</span>
-                    {onEdit && (
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-7 w-7"
-                        onClick={() => startEdit(expense)}
-                      >
-                        <Pencil className="h-3.5 w-3.5" />
-                      </Button>
-                    )}
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 text-destructive hover:text-destructive"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>খরচ মুছবেন?</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            "{expense.description}" - ৳{expense.amount.toLocaleString("bn-BD")} খরচটি স্থায়ীভাবে মুছে যাবে। এই কাজটি ফিরিয়ে আনা যাবে না।
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>বাতিল</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() => onDelete(expense.id)}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                          >
-                            মুছুন
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </div>
-                </div>
-              )}
-            </div>
+            <ExpenseRow key={expense.id} expense={expense} onEdit={onEdit} onDelete={onDelete} />
           ))}
         </div>
       </div>
