@@ -3,6 +3,7 @@ import { CircleBox } from "@/components/CircleBox";
 import { ExpenseForm } from "@/components/ExpenseForm";
 import { ExpenseCharts } from "@/components/ExpenseCharts";
 import { MonthDetailDialog } from "@/components/MonthDetailDialog";
+import { SavingsDialog } from "@/components/SavingsDialog";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,7 +11,7 @@ import { LogOut, Loader2, CalendarCheck, History, FileDown } from "lucide-react"
 import { Search, X, CalendarDays, CalendarRange, TrendingUp } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { SlidersHorizontal, ChevronDown } from "lucide-react";
-import { Menu, PiggyBank } from "lucide-react";
+import { Menu } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
@@ -107,7 +108,6 @@ export default function Dashboard() {
   const [openSearchCat, setOpenSearchCat] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [savingsDialogOpen, setSavingsDialogOpen] = useState(false);
-  const [savingsInput, setSavingsInput] = useState("");
   const [filterOpen, setFilterOpen] = useState(false);
 
   const toggleFilterCategory = (key: string) =>
@@ -547,12 +547,11 @@ export default function Dashboard() {
                   type="button"
                   onClick={() => {
                     setMenuOpen(false);
-                    setSavingsInput(savingsAmount ? String(savingsAmount) : "");
                     setSavingsDialogOpen(true);
                   }}
                   className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-muted"
                 >
-                  <PiggyBank className="h-4 w-4 text-muted-foreground" />
+                  <span aria-hidden>💰</span>
                   সঞ্চয়
                 </button>
               </PopoverContent>
@@ -824,41 +823,9 @@ export default function Dashboard() {
         </AlertDialog>
       </main>
 
-      <Dialog open={savingsDialogOpen} onOpenChange={setSavingsDialogOpen}>
-        <DialogContent className="max-w-[min(22rem,92vw)]">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <PiggyBank className="h-4 w-4" /> সঞ্চয়
-            </DialogTitle>
-          </DialogHeader>
-          <div className="flex flex-col gap-3">
-            <p className="text-xs text-muted-foreground">
-              চলতি মাসের বেতন ৳{settings.salary.toLocaleString("bn-BD")} — সঞ্চয়ের পরিমাণ লিখুন
-            </p>
-            <Input
-              type="number"
-              inputMode="decimal"
-              value={savingsInput}
-              onChange={(e) => setSavingsInput(e.target.value)}
-              placeholder="টাকার পরিমাণ"
-            />
-            <Button
-              onClick={() => {
-                const amt = parseFloat(savingsInput);
-                if (isNaN(amt) || amt < 0) { toast.error("সঠিক পরিমাণ দিন"); return; }
-                if (settings.salary <= 0) { toast.error("আগে বেতন ইনপুট দিন"); return; }
-                if (amt > settings.salary) { toast.error("বেতনের বেশি হতে পারবে না"); return; }
-                const pct = (amt / settings.salary) * 100;
-                updateSettings({ ...settings, savingsPercent: pct });
-                setSavingsDialogOpen(false);
-                toast.success("সঞ্চয় সংরক্ষিত হয়েছে");
-              }}
-            >
-              সংরক্ষণ করুন
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {user && (
+        <SavingsDialog open={savingsDialogOpen} onOpenChange={setSavingsDialogOpen} userId={user.id} />
+      )}
 
       {selectedMonth && user && (
         <MonthDetailDialog
