@@ -373,7 +373,7 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
                     <Bar
                       dataKey="within"
                       stackId="m"
-                      radius={[0, 0, 0, 0]}
+                      radius={[6, 6, 0, 0]}
                       maxBarSize={22}
                       fill="url(#monthlyBarGreen)"
                       onClick={(data: any) => {
@@ -381,11 +381,7 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
                         if (found) setSelectedMonth(found.key);
                       }}
                       style={{ cursor: "pointer" }}
-                    >
-                      {monthlyData.map((entry, i) => (
-                        <Cell key={i} radius={entry.over > 0 ? 0 : (6 as any)} />
-                      ))}
-                    </Bar>
+                    />
                     <Bar
                       dataKey="over"
                       stackId="m"
