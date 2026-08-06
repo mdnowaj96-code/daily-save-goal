@@ -357,13 +357,13 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
                 <ResponsiveContainer width="100%" height={220}>
                   <BarChart data={monthlyData} margin={{ top: 24, right: 5, left: 0, bottom: 5 }} barCategoryGap="35%">
                     <defs>
-                      <linearGradient id="monthlyBarActive" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="hsl(210, 90%, 55%)" stopOpacity={1} />
-                        <stop offset="100%" stopColor="hsl(210, 90%, 45%)" stopOpacity={0.85} />
+                      <linearGradient id="monthlyBarGreen" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="hsl(150, 65%, 45%)" stopOpacity={1} />
+                        <stop offset="100%" stopColor="hsl(150, 65%, 35%)" stopOpacity={0.9} />
                       </linearGradient>
-                      <linearGradient id="monthlyBarPast" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="hsl(215, 25%, 55%)" stopOpacity={0.95} />
-                        <stop offset="100%" stopColor="hsl(215, 25%, 45%)" stopOpacity={0.75} />
+                      <linearGradient id="monthlyBarRed" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="hsl(0, 78%, 58%)" stopOpacity={1} />
+                        <stop offset="100%" stopColor="hsl(0, 78%, 48%)" stopOpacity={0.9} />
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
@@ -371,9 +371,27 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
                     <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} width={45} />
                     <Tooltip content={<CustomTooltip />} cursor={{ fill: "hsl(var(--muted) / 0.3)" }} />
                     <Bar
-                      dataKey="amount"
+                      dataKey="within"
+                      stackId="m"
+                      radius={[0, 0, 0, 0]}
+                      maxBarSize={22}
+                      fill="url(#monthlyBarGreen)"
+                      onClick={(data: any) => {
+                        const found = monthlyData.find((m) => m.month === data.month);
+                        if (found) setSelectedMonth(found.key);
+                      }}
+                      style={{ cursor: "pointer" }}
+                    >
+                      {monthlyData.map((entry, i) => (
+                        <Cell key={i} radius={entry.over > 0 ? 0 : (6 as any)} />
+                      ))}
+                    </Bar>
+                    <Bar
+                      dataKey="over"
+                      stackId="m"
                       radius={[6, 6, 0, 0]}
                       maxBarSize={22}
+                      fill="url(#monthlyBarRed)"
                       onClick={(data: any) => {
                         const found = monthlyData.find((m) => m.month === data.month);
                         if (found) setSelectedMonth(found.key);
@@ -386,12 +404,6 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
                         formatter={(v: number) => `৳${v.toLocaleString("bn-BD")}`}
                         style={{ fontSize: 11, fill: "hsl(var(--foreground))", fontWeight: 700 }}
                       />
-                      {monthlyData.map((entry, i) => (
-                        <Cell
-                          key={i}
-                          fill={entry.isCurrent ? "url(#monthlyBarActive)" : "url(#monthlyBarPast)"}
-                        />
-                      ))}
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
