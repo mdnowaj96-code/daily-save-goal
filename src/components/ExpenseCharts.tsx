@@ -531,12 +531,12 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
                       <div className="flex items-center gap-2 min-w-0 flex-1">
                         <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: COLORS[i % COLORS.length] }} />
                         <span className="shrink-0">{item.emoji}</span>
-                        <span className="text-foreground truncate text-left">{item.name}</span>
+                        <span className="text-foreground font-semibold truncate text-left">{item.name}</span>
                         <span className="text-[10px] text-muted-foreground shrink-0">({toBnDigits(item.items.length)})</span>
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
                         <div className="flex flex-col items-end leading-tight">
-                          <span className="font-semibold text-foreground whitespace-nowrap">৳{item.value.toLocaleString("bn-BD")}</span>
+                          <span className="font-bold text-foreground whitespace-nowrap">৳{item.value.toLocaleString("bn-BD")}</span>
                           {salary ? (
                             <span className="text-[10px] text-muted-foreground whitespace-nowrap">
                               {toBnDigits(Math.round((item.value / salary) * 100))}%
@@ -574,38 +574,8 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
                         </div>
                       ) : (
                         <>
-                          <div className="flex items-center justify-between gap-2 text-[10px] mb-1">
-                            <button
-                              type="button"
-                              onClick={() => { setEditTargetCat(item.key); setTargetInput(target ? String(target) : ""); }}
-                              className="flex items-center gap-1 font-extrabold text-foreground hover:opacity-80 transition-opacity"
-                            >
-                              <Target className="h-3 w-3" />
-                              {target > 0 ? `টার্গেট ৳${target.toLocaleString("bn-BD")}` : "টার্গেট সেট করুন"}
-                            </button>
-                            {target > 0 && (
-                              <span className={`font-semibold ${over ? "text-destructive" : "text-foreground"}`}>
-                                {over
-                                  ? `৳${Math.abs(remaining).toLocaleString("bn-BD")} বেশি`
-                                  : `৳${remaining.toLocaleString("bn-BD")} বাকি`}
-                              </span>
-                            )}
-                          </div>
                           {target > 0 && (
                             <>
-                              <div
-                                className="relative h-2 w-full rounded-full overflow-hidden"
-                                style={{ background: `linear-gradient(90deg, ${barColor}22, ${barColor}33)`, boxShadow: `inset 0 0 6px ${barColor}44` }}
-                              >
-                                <div
-                                  className="h-full rounded-full transition-all duration-700 ease-out"
-                                  style={{
-                                    width: `${over ? 100 : leftPct}%`,
-                                    background: `linear-gradient(90deg, ${barColor}, ${barColor}cc)`,
-                                    boxShadow: `0 0 8px ${barColor}88`,
-                                  }}
-                                />
-                              </div>
                               {/* Segmented target vs actual bar */}
                               {(() => {
                                 const segTotal = 10;
@@ -629,7 +599,7 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
                                         />
                                       ))}
                                     </div>
-                                    <span className="text-[10px] font-extrabold shrink-0" style={{ color: segColor }}>
+                                    <span className="text-[10px] font-bold shrink-0" style={{ color: segColor }}>
                                       {toBnDigits(pctLeft)}%
                                     </span>
                                   </div>
@@ -637,6 +607,23 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
                               })()}
                             </>
                           )}
+                          <div className="flex items-center gap-3 text-[10px] mt-1.5">
+                            <button
+                              type="button"
+                              onClick={() => { setEditTargetCat(item.key); setTargetInput(target ? String(target) : ""); }}
+                              className="flex items-center gap-1 font-semibold text-foreground hover:opacity-80 transition-opacity"
+                            >
+                              <Target className="h-3 w-3" />
+                              {target > 0 ? `টার্গেট ৳${target.toLocaleString("bn-BD")}` : "টার্গেট সেট করুন"}
+                            </button>
+                            {target > 0 && (
+                              <span className={`font-bold ${over ? "text-destructive" : "text-foreground"}`}>
+                                {over
+                                  ? `৳${Math.abs(remaining).toLocaleString("bn-BD")} বেশি`
+                                  : `৳${remaining.toLocaleString("bn-BD")} বাকি`}
+                              </span>
+                            )}
+                          </div>
                         </>
                       )}
                     </div>
