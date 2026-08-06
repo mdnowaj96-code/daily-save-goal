@@ -784,7 +784,7 @@ export default function Dashboard() {
         <ExpenseCharts
           expenses={activeExpenses}
           allExpenses={expenses}
-          history={history.map((h) => ({ month: h.month, total_expenses: h.total_expenses }))}
+          history={history.map((h) => ({ month: h.month, total_expenses: h.total_expenses, salary: h.salary }))}
           currentMonth={settings.currentMonth}
           onDeleteExpense={handleDeleteExpense}
           onEditExpense={handleEditExpense}

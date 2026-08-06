@@ -21,6 +21,7 @@ interface Expense {
 interface MonthlyHistoryItem {
   month: string; // YYYY-MM
   total_expenses: number;
+  salary?: number;
 }
 
 interface ExpenseChartsProps {
@@ -175,28 +176,37 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
   // Monthly totals: combine history (closed months) + current month from expenses
   const monthlyData = useMemo(() => {
     const monthly: Record<string, number> = {};
+    const salaries: Record<string, number> = {};
     // Closed months from history
     history.forEach((h) => {
       monthly[h.month] = h.total_expenses;
+      if (h.salary) salaries[h.month] = h.salary;
     });
     // Current/active month from live expenses
     expenses.forEach((e) => {
       const key = e.date.substring(0, 7);
       monthly[key] = (monthly[key] || 0) + e.amount;
     });
+    if (currentMonth && salary) salaries[currentMonth] = salary;
 
     const keys = Object.keys(monthly).sort();
     return keys.map((key) => {
       const [yr, mo] = key.split("-");
       const shortYr = yr.slice(-2);
+      const amount = monthly[key];
+      const monthSalary = salaries[key] || 0;
+      const over = monthSalary > 0 ? Math.max(0, amount - monthSalary) : 0;
       return {
         key,
         month: `${BN_MONTHS_FULL[parseInt(mo, 10) - 1]},${toBnDigits(shortYr)}`,
-        amount: monthly[key],
+        amount,
+        within: amount - over,
+        over,
+        salary: monthSalary,
         isCurrent: key === currentMonth,
       };
     });
-  }, [expenses, history, currentMonth]);
+  }, [expenses, history, currentMonth, salary]);
 
   // Group by category
   const categoryData = useMemo(() => {
