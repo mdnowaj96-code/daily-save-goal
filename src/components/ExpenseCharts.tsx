@@ -592,19 +592,50 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
                             )}
                           </div>
                           {target > 0 && (
-                            <div
-                              className="relative h-2 w-full rounded-full overflow-hidden"
-                              style={{ background: `linear-gradient(90deg, ${barColor}22, ${barColor}33)`, boxShadow: `inset 0 0 6px ${barColor}44` }}
-                            >
+                            <>
                               <div
-                                className="h-full rounded-full transition-all duration-700 ease-out"
-                                style={{
-                                  width: `${over ? 100 : leftPct}%`,
-                                  background: `linear-gradient(90deg, ${barColor}, ${barColor}cc)`,
-                                  boxShadow: `0 0 8px ${barColor}88`,
-                                }}
-                              />
-                            </div>
+                                className="relative h-2 w-full rounded-full overflow-hidden"
+                                style={{ background: `linear-gradient(90deg, ${barColor}22, ${barColor}33)`, boxShadow: `inset 0 0 6px ${barColor}44` }}
+                              >
+                                <div
+                                  className="h-full rounded-full transition-all duration-700 ease-out"
+                                  style={{
+                                    width: `${over ? 100 : leftPct}%`,
+                                    background: `linear-gradient(90deg, ${barColor}, ${barColor}cc)`,
+                                    boxShadow: `0 0 8px ${barColor}88`,
+                                  }}
+                                />
+                              </div>
+                              {/* Segmented target vs actual bar */}
+                              {(() => {
+                                const segTotal = 10;
+                                const pctLeft = over ? 0 : Math.round(leftPct);
+                                const filled = Math.round((pctLeft / 100) * segTotal);
+                                const segColor = pctLeft <= 20 ? "hsl(0, 78%, 52%)" : "hsl(150, 62%, 40%)";
+                                return (
+                                  <div className="mt-1.5 flex items-center gap-2">
+                                    <div className="flex flex-1 gap-[2px]">
+                                      {Array.from({ length: segTotal }).map((_, si) => (
+                                        <span
+                                          key={si}
+                                          className="h-2.5 flex-1 rounded-[2px] transition-colors duration-500"
+                                          style={
+                                            si < filled
+                                              ? { background: segColor }
+                                              : {
+                                                  background: `repeating-linear-gradient(45deg, ${segColor}55 0 2px, transparent 2px 4px)`,
+                                                }
+                                          }
+                                        />
+                                      ))}
+                                    </div>
+                                    <span className="text-[10px] font-extrabold shrink-0" style={{ color: segColor }}>
+                                      {toBnDigits(pctLeft)}%
+                                    </span>
+                                  </div>
+                                );
+                              })()}
+                            </>
                           )}
                         </>
                       )}
