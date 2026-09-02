@@ -51,6 +51,11 @@ export default {
         needs: "hsl(var(--needs))",
         savings: "hsl(var(--savings))",
         wants: "hsl(var(--wants))",
+        "budget-safe": "hsl(var(--budget-safe))",
+        "budget-steady": "hsl(var(--budget-steady))",
+        "budget-warning": "hsl(var(--budget-warning))",
+        "budget-danger": "hsl(var(--budget-danger))",
+        "budget-over": "hsl(var(--budget-over))",
         sidebar: {
           DEFAULT: "hsl(var(--sidebar-background))",
           foreground: "hsl(var(--sidebar-foreground))",
