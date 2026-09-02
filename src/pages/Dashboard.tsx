@@ -263,10 +263,6 @@ export default function Dashboard() {
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   })();
-  const todayExpense = activeExpenses
-    .filter((e) => e.date === todayKey)
-    .reduce((s, e) => s + e.amount, 0);
-
   const weekStart = (() => {
     const d = new Date();
     const day = d.getDay(); // 0=Sun ... 6=Sat
@@ -291,10 +287,11 @@ export default function Dashboard() {
   const recentDailyExpense = activeExpenses
     .filter((expense) => expense.date === recentExpenseDate)
     .reduce((sum, expense) => sum + expense.amount, 0);
-  const dailyTrend = Object.values(activeExpenses.reduce<Record<string, number>>((totals, expense) => {
+  const dailyTotals = activeExpenses.reduce<Record<string, number>>((totals, expense) => {
     totals[expense.date] = (totals[expense.date] ?? 0) + expense.amount;
     return totals;
-  }, {})).slice(-8);
+  }, {});
+  const dailyTrend = Object.keys(dailyTotals).sort().slice(-8).map((date) => dailyTotals[date]);
   const previousMonthTotal = history
     .filter((record) => record.month < settings.currentMonth)
     .sort((a, b) => b.month.localeCompare(a.month))[0]?.total_expenses;
