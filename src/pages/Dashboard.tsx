@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { CircleBox } from "@/components/CircleBox";
+import { DashboardSummary } from "@/components/DashboardSummary";
 import { ExpenseForm } from "@/components/ExpenseForm";
 import { ExpenseCharts } from "@/components/ExpenseCharts";
 import { MonthDetailDialog } from "@/components/MonthDetailDialog";
@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { LogOut, Loader2, CalendarCheck, History, FileDown } from "lucide-react";
-import { Search, X, CalendarDays, CalendarRange, TrendingUp } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { SlidersHorizontal, ChevronDown } from "lucide-react";
 import { Menu } from "lucide-react";
@@ -81,7 +81,7 @@ const BN_MONTHS = [
 const formatMonth = (m: string) => {
   const [y, mo] = m.split("-");
   const idx = parseInt(mo, 10) - 1;
-  return `${BN_MONTHS[idx] ?? mo} ${y}`;
+  return `${BN_MONTHS[idx] ?? mo} ${Number(y).toLocaleString("bn-BD", { useGrouping: false })}`;
 };
 
 const currentMonthKey = () => {
@@ -263,10 +263,6 @@ export default function Dashboard() {
     const d = new Date();
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
   })();
-  const todayExpense = activeExpenses
-    .filter((e) => e.date === todayKey)
-    .reduce((s, e) => s + e.amount, 0);
-
   const weekStart = (() => {
     const d = new Date();
     const day = d.getDay(); // 0=Sun ... 6=Sat
@@ -287,6 +283,18 @@ export default function Dashboard() {
     return new Date(yy, mm, 0).getDate();
   })();
   const dailyAverage = daysInMonth > 0 ? Math.round(totalExpenses / daysInMonth) : 0;
+  const recentExpenseDate = activeExpenses.reduce((latest, expense) => expense.date > latest ? expense.date : latest, "");
+  const recentDailyExpense = activeExpenses
+    .filter((expense) => expense.date === recentExpenseDate)
+    .reduce((sum, expense) => sum + expense.amount, 0);
+  const dailyTotals = activeExpenses.reduce<Record<string, number>>((totals, expense) => {
+    totals[expense.date] = (totals[expense.date] ?? 0) + expense.amount;
+    return totals;
+  }, {});
+  const dailyTrend = Object.keys(dailyTotals).sort().slice(-8).map((date) => dailyTotals[date]);
+  const previousMonthTotal = history
+    .filter((record) => record.month < settings.currentMonth)
+    .sort((a, b) => b.month.localeCompare(a.month))[0]?.total_expenses;
 
   const handleAddExpense = useCallback(async (date: string, description: string, amount: number, category: string) => {
     if (!user) return;
@@ -705,82 +713,40 @@ export default function Dashboard() {
           )}
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 justify-items-center">
-          <CircleBox
-            label="মোট বেতন"
-            amount={settings.salary}
-            colorVar="salary"
-            percent={100}
-            onEdit={(val) => updateSettings({ ...settings, salary: val })}
-          />
-          <CircleBox
-            label="প্রয়োজন"
-            amount={needsRemaining}
-            percent={settings.needsPercent}
-            remainingPercent={needsRemainingPercent}
-            colorVar="needs"
-            onEdit={(val) => updateSettings({ ...settings, needsPercent: Math.min(100, Math.max(0, val)) })}
-            subtitle={`বরাদ্দ: ৳${needsAmount.toLocaleString("bn-BD")}`}
-          />
-          <CircleBox
-            label="হাত খরচ"
-            amount={wantsRemaining}
-            percent={settings.wantsPercent}
-            remainingPercent={wantsRemainingPercent}
-            colorVar="wants"
-            onEdit={(val) => updateSettings({ ...settings, wantsPercent: Math.min(100, Math.max(0, val)) })}
-            subtitle={`বরাদ্দ: ৳${wantsAmount.toLocaleString("bn-BD")}`}
-          />
-          <CircleBox
-            label="সঞ্চয়"
-            amount={savingsRemaining}
-            percent={settings.savingsPercent}
-            remainingPercent={savingsRemainingPercent}
-            colorVar="savings"
-            onEdit={(val) => updateSettings({ ...settings, savingsPercent: Math.min(100, Math.max(0, val)) })}
-            subtitle={`বরাদ্দ: ৳${savingsAmount.toLocaleString("bn-BD")}`}
-          />
-        </div>
+        <DashboardSummary
+          monthLabel={formatMonth(settings.currentMonth)}
+          totalExpenses={totalExpenses}
+          salary={settings.salary}
+          recentDailyExpense={recentDailyExpense}
+          weekExpense={weekExpense}
+          dailyAverage={dailyAverage}
+          previousMonthTotal={previousMonthTotal}
+          dailyTrend={dailyTrend}
+          onSalaryEdit={(value) => updateSettings({ ...settings, salary: value })}
+          needs={{
+            amount: needsRemaining,
+            percent: settings.needsPercent,
+            remainingPercent: needsRemainingPercent,
+            allocation: needsAmount,
+            onEdit: (value) => updateSettings({ ...settings, needsPercent: Math.min(100, Math.max(0, value)) }),
+          }}
+          wants={{
+            amount: wantsRemaining,
+            percent: settings.wantsPercent,
+            remainingPercent: wantsRemainingPercent,
+            allocation: wantsAmount,
+            onEdit: (value) => updateSettings({ ...settings, wantsPercent: Math.min(100, Math.max(0, value)) }),
+          }}
+          savings={{
+            amount: savingsRemaining,
+            percent: settings.savingsPercent,
+            remainingPercent: savingsRemainingPercent,
+            allocation: savingsAmount,
+            onEdit: (value) => updateSettings({ ...settings, savingsPercent: Math.min(100, Math.max(0, value)) }),
+          }}
+        />
 
         <ExpenseForm onAdd={handleAddExpense} />
-        <div className="grid grid-cols-3 gap-2 sm:gap-3">
-          {[
-            { label: "আজকের খরচ", value: todayExpense, Icon: CalendarDays, colorVar: "needs", gradient: "var(--gradient-needs)" },
-            { label: "এই সপ্তাহে", value: weekExpense, Icon: CalendarRange, colorVar: "wants", gradient: "var(--gradient-wants)" },
-            { label: "দৈনিক গড়", value: dailyAverage, Icon: TrendingUp, colorVar: "salary", gradient: "var(--gradient-salary)" },
-          ].map(({ label, value, Icon, colorVar, gradient }) => (
-            <div
-              key={label}
-              className="relative overflow-hidden rounded-2xl border border-border/60 gradient-card shadow-soft p-3 flex flex-col gap-2 hover:shadow-elegant transition-shadow"
-            >
-              <div
-                aria-hidden
-                className="absolute -top-6 -right-6 h-16 w-16 rounded-full opacity-20 blur-xl"
-                style={{ backgroundImage: gradient }}
-              />
-              <div className="relative flex items-center gap-2">
-                <div
-                  className="h-7 w-7 rounded-lg flex items-center justify-center text-primary-foreground shadow-soft shrink-0"
-                  style={{ backgroundImage: gradient }}
-                >
-                  <Icon className="h-3.5 w-3.5" />
-                </div>
-                <span className="text-[10px] font-semibold text-muted-foreground leading-tight">{label}</span>
-              </div>
-              <div className="relative flex items-baseline gap-0.5">
-                <span
-                  className="text-[11px] font-bold"
-                  style={{ color: `hsl(var(--${colorVar}))` }}
-                >
-                  ৳
-                </span>
-                <span className="text-base sm:text-lg font-extrabold text-foreground tracking-tight tabular-nums">
-                  {value.toLocaleString("bn-BD")}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
         <ExpenseCharts
           expenses={activeExpenses}
           allExpenses={expenses}

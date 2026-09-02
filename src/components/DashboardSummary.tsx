@@ -37,7 +37,7 @@ export function DashboardSummary({
 }: DashboardSummaryProps) {
   const [activeSlide, setActiveSlide] = useState(0);
   const sliderRef = useRef<HTMLDivElement>(null);
-  const budgetUsed = salary > 0 ? (totalExpenses / salary) * 100 : 0;
+  const budgetUsed = salary > 0 ? (totalExpenses / salary) * 100 : totalExpenses > 0 ? 101 : 0;
   const remainingBudget = Math.max(0, salary - totalExpenses);
   const comparison = previousMonthTotal && previousMonthTotal > 0
     ? ((totalExpenses - previousMonthTotal) / previousMonthTotal) * 100

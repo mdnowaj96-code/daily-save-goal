@@ -13,10 +13,10 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 210 70% 50%;
+    --primary: 212 100% 54%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 160 60% 45%;
+    --secondary: 179 77% 37%;
     --secondary-foreground: 0 0% 100%;
 
     --muted: 210 20% 94%;
@@ -34,13 +34,20 @@
 
     --radius: 0.75rem;
 
+    --budget-safe: 153 67% 43%;
+    --budget-steady: 179 77% 37%;
+    --budget-warning: 38 92% 50%;
+    --budget-danger: 0 72% 51%;
+    --budget-over: 0 72% 32%;
+
     --salary: 210 70% 50%;
     --needs: 340 65% 55%;
     --savings: 160 60% 45%;
     --wants: 38 90% 55%;
 
     --primary-glow: 210 90% 65%;
-    --gradient-primary: linear-gradient(135deg, hsl(210 80% 55%), hsl(260 75% 60%));
+    --gradient-primary: linear-gradient(135deg, hsl(212 100% 54%), hsl(179 77% 37%));
+    --gradient-summary: linear-gradient(135deg, hsl(212 100% 54%), hsl(179 77% 37%));
     --gradient-card: linear-gradient(160deg, hsl(0 0% 100%) 0%, hsl(210 30% 97%) 100%);
     --gradient-salary: linear-gradient(135deg, hsl(210 80% 55%), hsl(190 80% 55%));
     --gradient-needs: linear-gradient(135deg, hsl(340 75% 60%), hsl(15 85% 60%));
@@ -85,7 +92,13 @@
     --savings: 160 60% 45%;
     --wants: 38 90% 55%;
     --primary-glow: 210 90% 70%;
-    --gradient-primary: linear-gradient(135deg, hsl(210 80% 55%), hsl(260 70% 55%));
+    --budget-safe: 153 67% 48%;
+    --budget-steady: 179 68% 47%;
+    --budget-warning: 38 92% 55%;
+    --budget-danger: 0 72% 58%;
+    --budget-over: 0 64% 42%;
+    --gradient-primary: linear-gradient(135deg, hsl(212 100% 54%), hsl(179 68% 42%));
+    --gradient-summary: linear-gradient(135deg, hsl(212 100% 54%), hsl(179 68% 42%));
     --gradient-card: linear-gradient(160deg, hsl(222 30% 10%), hsl(222 35% 7%));
     --gradient-salary: linear-gradient(135deg, hsl(210 80% 55%), hsl(190 70% 50%));
     --gradient-needs: linear-gradient(135deg, hsl(340 75% 60%), hsl(15 80% 55%));
@@ -118,15 +131,14 @@
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
     line-height: 1.6;
-    background-image:
-      radial-gradient(ellipse 80% 50% at 50% -10%, hsl(var(--primary) / 0.10), transparent),
-      radial-gradient(ellipse 60% 40% at 100% 100%, hsl(var(--accent) / 0.08), transparent);
+    background-image: linear-gradient(to bottom, hsl(var(--background)), hsl(var(--muted) / 0.45));
     background-attachment: fixed;
   }
 }
 
 @layer utilities {
   .gradient-primary { background-image: var(--gradient-primary); }
+  .bg-summary { background-image: var(--gradient-summary); }
   .gradient-card { background-image: var(--gradient-card); }
   .shadow-elegant { box-shadow: var(--shadow-elegant); }
   .shadow-glow { box-shadow: var(--shadow-glow); }
@@ -137,4 +149,6 @@
     background-clip: text;
     color: transparent;
   }
+  .scrollbar-none { scrollbar-width: none; }
+  .scrollbar-none::-webkit-scrollbar { display: none; }
 }

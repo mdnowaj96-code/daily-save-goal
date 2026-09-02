@@ -39,7 +39,7 @@ export function CircleBox({ label, amount, percent, colorVar, onEdit, subtitle, 
   const strokeColor = isEmpty ? "hsl(var(--muted-foreground))" : `url(#${gradId})`;
 
   return (
-    <div className="flex flex-col items-center gap-1.5 animate-fade-in">
+    <div className="flex min-w-0 flex-col items-center gap-1.5 animate-fade-in">
       <div
         className="relative w-28 h-28 sm:w-32 sm:h-32 rounded-full"
         style={{ filter: `drop-shadow(0 6px 18px hsl(var(--${colorVar}) / ${0.30 * ratio}))` }}
@@ -82,7 +82,7 @@ export function CircleBox({ label, amount, percent, colorVar, onEdit, subtitle, 
             </div>
           ) : (
             <>
-              <span className="text-sm sm:text-base font-bold text-foreground">
+              <span className="max-w-[5.5rem] break-words text-center text-sm font-bold leading-tight text-foreground sm:max-w-[6.5rem] sm:text-base">
                 ৳{amount.toLocaleString("bn-BD")}
               </span>
               {percent !== undefined && (
@@ -95,15 +95,19 @@ export function CircleBox({ label, amount, percent, colorVar, onEdit, subtitle, 
       <div className="flex items-center gap-1">
         <span className="text-xs font-medium text-muted-foreground">{label}</span>
         {onEdit && !editing && (
-          <button
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
             onClick={() => {
               setEditValue(String(amount));
               setEditing(true);
             }}
-            className="text-muted-foreground hover:text-foreground"
+            className="h-6 w-6 text-muted-foreground hover:text-foreground"
+            aria-label={`${label} সম্পাদনা করুন`}
           >
             <Pencil className="h-3 w-3" />
-          </button>
+          </Button>
         )}
       </div>
       {subtitle && <span className="text-[10px] text-muted-foreground">{subtitle}</span>}
