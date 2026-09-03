@@ -108,7 +108,7 @@ export function SearchResultRow({ expense, onEdit, onDelete }: Props) {
         </button>
         <button
           type="button"
-          onClick={() => { setRevealed(false); onDelete(expense.id); }}
+          onClick={() => { setRevealed(false); setConfirmOpen(true); }}
           className="px-4 bg-destructive text-destructive-foreground flex items-center"
           aria-label="মুছুন"
         >
@@ -135,6 +135,26 @@ export function SearchResultRow({ expense, onEdit, onDelete }: Props) {
         </div>
         <span className="text-sm font-semibold text-foreground shrink-0">৳{expense.amount.toLocaleString("bn-BD")}</span>
       </div>
+
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>খরচ মুছবেন?</AlertDialogTitle>
+            <AlertDialogDescription>
+              "{expense.description}" - ৳{expense.amount.toLocaleString("bn-BD")} খরচটি স্থায়ীভাবে মুছে যাবে।
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>বাতিল</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => onDelete(expense.id)}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              মুছুন
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
