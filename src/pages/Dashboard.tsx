@@ -715,6 +715,7 @@ export default function Dashboard() {
 
         <DashboardSummary
           monthLabel={formatMonth(settings.currentMonth)}
+          currentMonth={settings.currentMonth}
           totalExpenses={totalExpenses}
           salary={settings.salary}
           recentDailyExpense={recentDailyExpense}
@@ -722,6 +723,7 @@ export default function Dashboard() {
           dailyAverage={dailyAverage}
           previousMonthTotal={previousMonthTotal}
           dailyTrend={dailyTrend}
+          dailyTotals={dailyTotals}
           onSalaryEdit={(value) => updateSettings({ ...settings, salary: value })}
           needs={{
             amount: needsRemaining,

@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 
 interface DashboardSummaryProps {
   monthLabel: string;
+  currentMonth: string;
   totalExpenses: number;
   salary: number;
   recentDailyExpense: number;
@@ -15,6 +16,7 @@ interface DashboardSummaryProps {
   dailyAverage: number;
   previousMonthTotal?: number;
   dailyTrend: number[];
+  dailyTotals?: Record<string, number>;
   needs: { amount: number; percent: number; remainingPercent: number; allocation: number; onEdit: (value: number) => void };
   wants: { amount: number; percent: number; remainingPercent: number; allocation: number; onEdit: (value: number) => void };
   savings: { amount: number; percent: number; remainingPercent: number; allocation: number; onEdit: (value: number) => void };
@@ -25,6 +27,7 @@ const formatMoney = (value: number) => `৳${Math.round(value).toLocaleString("b
 
 export function DashboardSummary({
   monthLabel,
+  currentMonth,
   totalExpenses,
   salary,
   recentDailyExpense,
@@ -32,13 +35,24 @@ export function DashboardSummary({
   dailyAverage,
   previousMonthTotal,
   dailyTrend,
+  dailyTotals = {},
   needs,
   wants,
   savings,
   onSalaryEdit,
 }: DashboardSummaryProps) {
   const [activeSlide, setActiveSlide] = useState(0);
+  const [calendarOpen, setCalendarOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const sliderRef = useRef<HTMLDivElement>(null);
+  const [monthYear, monthNum] = currentMonth.split("-").map(Number);
+  const monthStart = new Date(monthYear, monthNum - 1, 1);
+  const monthEnd = new Date(monthYear, monthNum, 0);
+  const expenseDays = Object.keys(dailyTotals).map((d) => new Date(`${d}T00:00:00`));
+  const selectedKey = selectedDate
+    ? `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, "0")}-${String(selectedDate.getDate()).padStart(2, "0")}`
+    : null;
+  const selectedTotal = selectedKey ? dailyTotals[selectedKey] ?? 0 : 0;
   const budgetUsed = salary > 0 ? (totalExpenses / salary) * 100 : totalExpenses > 0 ? 101 : 0;
   const remainingBudget = Math.max(0, salary - totalExpenses);
   const comparison = previousMonthTotal && previousMonthTotal > 0
@@ -88,9 +102,35 @@ export function DashboardSummary({
               <p className="text-xs font-semibold text-muted-foreground">মাসিক সারাংশ</p>
               <h2 className="text-lg font-bold text-foreground">{monthLabel}</h2>
             </div>
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-primary" aria-hidden="true">
-              <CalendarDays className="h-5 w-5" />
-            </div>
+            <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
+                  aria-label="চলতি মাসের ক্যালেন্ডার দেখুন"
+                  className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-primary transition-colors hover:bg-primary/10"
+                >
+                  <CalendarDays className="h-5 w-5" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="end">
+                <Calendar
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={setSelectedDate}
+                  month={monthStart}
+                  fromDate={monthStart}
+                  toDate={monthEnd}
+                  modifiers={{ hasExpense: expenseDays }}
+                  modifiersClassNames={{ hasExpense: "font-bold text-primary underline underline-offset-2" }}
+                  className={cn("p-3 pointer-events-auto")}
+                />
+                <div className="border-t border-border/60 px-4 py-2.5 text-xs font-semibold text-muted-foreground">
+                  {selectedDate
+                    ? `${selectedDate.toLocaleDateString("bn-BD", { day: "numeric", month: "long" })}: মোট খরচ ${formatMoney(selectedTotal)}`
+                    : "কোনো দিন বেছে নিন — খরচ আছে এমন দিনগুলো চিহ্নিত"}
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
