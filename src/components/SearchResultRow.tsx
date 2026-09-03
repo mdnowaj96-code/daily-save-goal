@@ -7,6 +7,16 @@ import { toast } from "sonner";
 import { DEFAULT_CATEGORY, getCategoryMeta } from "@/lib/expenseCategories";
 import { useCategories } from "@/hooks/useCategories";
 import { getTimeDiffInBn } from "@/lib/utils";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export interface SearchResultItem {
   id: string;
@@ -28,6 +38,7 @@ export function SearchResultRow({ expense, onEdit, onDelete }: Props) {
   const { categories } = useCategories();
   const [revealed, setRevealed] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [date, setDate] = useState(expense.date);
   const [desc, setDesc] = useState(expense.description);
   const [amount, setAmount] = useState(String(expense.amount));
