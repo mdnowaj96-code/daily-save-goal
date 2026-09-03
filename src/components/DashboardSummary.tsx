@@ -126,35 +126,14 @@ export function DashboardSummary({
               <p className="text-xs font-semibold text-muted-foreground">মাসিক সারাংশ</p>
               <h2 className="text-lg font-bold text-foreground">{monthLabel}</h2>
             </div>
-            <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
-              <PopoverTrigger asChild>
-                <button
-                  type="button"
-                  aria-label="চলতি মাসের ক্যালেন্ডার দেখুন"
-                  className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-primary transition-colors hover:bg-primary/10"
-                >
-                  <CalendarDays className="h-5 w-5" />
-                </button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="end">
-                <Calendar
-                  mode="single"
-                  selected={selectedDate}
-                  onSelect={setSelectedDate}
-                  month={monthStart}
-                  fromDate={monthStart}
-                  toDate={monthEnd}
-                  modifiers={{ hasExpense: expenseDays }}
-                  modifiersClassNames={{ hasExpense: "font-bold text-primary underline underline-offset-2" }}
-                  className={cn("p-3 pointer-events-auto")}
-                />
-                <div className="border-t border-border/60 px-4 py-2.5 text-xs font-semibold text-muted-foreground">
-                  {selectedDate
-                    ? `${selectedDate.toLocaleDateString("bn-BD", { day: "numeric", month: "long" })}: মোট খরচ ${formatMoney(selectedTotal)}`
-                    : "কোনো দিন বেছে নিন — খরচ আছে এমন দিনগুলো চিহ্নিত"}
-                </div>
-              </PopoverContent>
-            </Popover>
+            <button
+              type="button"
+              onClick={() => { setViewYear(monthYear); setViewMonth(monthNum - 1); setCalendarOpen(true); }}
+              aria-label="মাসের ক্যালেন্ডার দেখুন"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-primary transition-colors hover:bg-primary/10"
+            >
+              <CalendarDays className="h-5 w-5" />
+            </button>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
