@@ -56,8 +56,8 @@ export function DashboardSummary({
     ? `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, "0")}-${String(selectedDate.getDate()).padStart(2, "0")}`
     : null;
   const selectedTotal = selectedKey ? dailyTotals[selectedKey] ?? 0 : 0;
-  const budgetUsed = salary > 0 ? (totalExpenses / salary) * 100 : totalExpenses > 0 ? 101 : 0;
-  const remainingBudget = Math.max(0, salary - totalExpenses);
+  const budgetUsed = budget > 0 ? (totalExpenses / budget) * 100 : totalExpenses > 0 ? 101 : 0;
+  const remainingBudget = Math.max(0, budget - totalExpenses);
   const comparison = previousMonthTotal && previousMonthTotal > 0
     ? ((totalExpenses - previousMonthTotal) / previousMonthTotal) * 100
     : null;
