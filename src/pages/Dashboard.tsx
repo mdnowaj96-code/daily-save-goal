@@ -91,6 +91,7 @@ const currentMonthKey = () => {
 
 export default function Dashboard() {
   const { categories: EXPENSE_CATEGORIES } = useCategories();
+  const { targets: categoryTargets } = useCategoryTargets();
   const { user, signOut } = useAuth();
   const [settings, setSettings] = useState<SalarySettings>({
     salary: 0, needsPercent: 40, savingsPercent: 12, wantsPercent: 48, currentMonth: currentMonthKey(),
