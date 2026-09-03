@@ -17,6 +17,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { DEFAULT_CATEGORY, getCategoryMeta } from "@/lib/expenseCategories";
 import { useCategories } from "@/hooks/useCategories";
+import { useCategoryTargets } from "@/hooks/useCategoryTargets";
 import { getTimeDiffInBn } from "@/lib/utils";
 import { SearchResultRow } from "@/components/SearchResultRow";
 import {
