@@ -240,6 +240,8 @@ export default function Dashboard() {
   // Only consider expenses for the active month
   const activeExpenses = expenses.filter((e) => e.month === settings.currentMonth);
   const totalExpenses = activeExpenses.reduce((s, e) => s + e.amount, 0);
+  const totalTarget = Object.values(categoryTargets).reduce((sum, v) => sum + Number(v || 0), 0);
+  const monthlyBudget = totalTarget > 0 ? totalTarget : settings.salary;
   const needsAmount = (settings.salary * settings.needsPercent) / 100;
   const savingsAmount = (settings.salary * settings.savingsPercent) / 100;
   const wantsAmount = (settings.salary * settings.wantsPercent) / 100;
@@ -720,6 +722,7 @@ export default function Dashboard() {
           currentMonth={settings.currentMonth}
           totalExpenses={totalExpenses}
           salary={settings.salary}
+          budget={monthlyBudget}
           recentDailyExpense={recentDailyExpense}
           weekExpense={weekExpense}
           dailyAverage={dailyAverage}
