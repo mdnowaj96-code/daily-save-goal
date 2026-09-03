@@ -27,6 +27,7 @@ const formatMoney = (value: number) => `৳${Math.round(value).toLocaleString("b
 
 export function DashboardSummary({
   monthLabel,
+  currentMonth,
   totalExpenses,
   salary,
   recentDailyExpense,
@@ -34,6 +35,7 @@ export function DashboardSummary({
   dailyAverage,
   previousMonthTotal,
   dailyTrend,
+  dailyTotals = {},
   needs,
   wants,
   savings,
