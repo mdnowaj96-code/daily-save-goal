@@ -1,8 +1,7 @@
 import { useMemo, useRef, useState } from "react";
-import { CalendarDays, TrendingDown, TrendingUp, WalletCards } from "lucide-react";
+import { CalendarDays, ChevronLeft, ChevronRight, TrendingDown, TrendingUp, WalletCards } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { CircleBox } from "@/components/CircleBox";
 import { cn } from "@/lib/utils";
 
