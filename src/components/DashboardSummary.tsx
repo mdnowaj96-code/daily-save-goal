@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 
 interface DashboardSummaryProps {
   monthLabel: string;
+  currentMonth: string;
   totalExpenses: number;
   salary: number;
   recentDailyExpense: number;
@@ -15,6 +16,7 @@ interface DashboardSummaryProps {
   dailyAverage: number;
   previousMonthTotal?: number;
   dailyTrend: number[];
+  dailyTotals?: Record<string, number>;
   needs: { amount: number; percent: number; remainingPercent: number; allocation: number; onEdit: (value: number) => void };
   wants: { amount: number; percent: number; remainingPercent: number; allocation: number; onEdit: (value: number) => void };
   savings: { amount: number; percent: number; remainingPercent: number; allocation: number; onEdit: (value: number) => void };
