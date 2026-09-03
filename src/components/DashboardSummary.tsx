@@ -32,6 +32,7 @@ export function DashboardSummary({
   currentMonth,
   totalExpenses,
   salary,
+  budget,
   recentDailyExpense,
   weekExpense,
   dailyAverage,
