@@ -17,6 +17,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { DEFAULT_CATEGORY, getCategoryMeta } from "@/lib/expenseCategories";
 import { useCategories } from "@/hooks/useCategories";
+import { useCategoryTargets } from "@/hooks/useCategoryTargets";
 import { getTimeDiffInBn } from "@/lib/utils";
 import { SearchResultRow } from "@/components/SearchResultRow";
 import {
@@ -91,6 +92,7 @@ const currentMonthKey = () => {
 
 export default function Dashboard() {
   const { categories: EXPENSE_CATEGORIES } = useCategories();
+  const { targets: categoryTargets } = useCategoryTargets();
   const { user, signOut } = useAuth();
   const [settings, setSettings] = useState<SalarySettings>({
     salary: 0, needsPercent: 40, savingsPercent: 12, wantsPercent: 48, currentMonth: currentMonthKey(),
@@ -238,6 +240,8 @@ export default function Dashboard() {
   // Only consider expenses for the active month
   const activeExpenses = expenses.filter((e) => e.month === settings.currentMonth);
   const totalExpenses = activeExpenses.reduce((s, e) => s + e.amount, 0);
+  const totalTarget = Object.values(categoryTargets).reduce((sum, v) => sum + Number(v || 0), 0);
+  const monthlyBudget = totalTarget > 0 ? totalTarget : settings.salary;
   const needsAmount = (settings.salary * settings.needsPercent) / 100;
   const savingsAmount = (settings.salary * settings.savingsPercent) / 100;
   const wantsAmount = (settings.salary * settings.wantsPercent) / 100;
@@ -718,6 +722,7 @@ export default function Dashboard() {
           currentMonth={settings.currentMonth}
           totalExpenses={totalExpenses}
           salary={settings.salary}
+          budget={monthlyBudget}
           recentDailyExpense={recentDailyExpense}
           weekExpense={weekExpense}
           dailyAverage={dailyAverage}
