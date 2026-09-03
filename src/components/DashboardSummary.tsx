@@ -42,7 +42,17 @@ export function DashboardSummary({
   onSalaryEdit,
 }: DashboardSummaryProps) {
   const [activeSlide, setActiveSlide] = useState(0);
+  const [calendarOpen, setCalendarOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const sliderRef = useRef<HTMLDivElement>(null);
+  const [monthYear, monthNum] = currentMonth.split("-").map(Number);
+  const monthStart = new Date(monthYear, monthNum - 1, 1);
+  const monthEnd = new Date(monthYear, monthNum, 0);
+  const expenseDays = Object.keys(dailyTotals).map((d) => new Date(`${d}T00:00:00`));
+  const selectedKey = selectedDate
+    ? `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, "0")}-${String(selectedDate.getDate()).padStart(2, "0")}`
+    : null;
+  const selectedTotal = selectedKey ? dailyTotals[selectedKey] ?? 0 : 0;
   const budgetUsed = salary > 0 ? (totalExpenses / salary) * 100 : totalExpenses > 0 ? 101 : 0;
   const remainingBudget = Math.max(0, salary - totalExpenses);
   const comparison = previousMonthTotal && previousMonthTotal > 0
