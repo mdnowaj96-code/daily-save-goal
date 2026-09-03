@@ -11,6 +11,8 @@ interface DashboardSummaryProps {
   currentMonth: string;
   totalExpenses: number;
   salary: number;
+  /** মাসিক বাজেট — খাতওয়ারি টার্গেটের যোগফল (না থাকলে বেতন) */
+  budget: number;
   recentDailyExpense: number;
   weekExpense: number;
   dailyAverage: number;
