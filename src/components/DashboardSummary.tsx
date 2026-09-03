@@ -45,16 +45,38 @@ export function DashboardSummary({
 }: DashboardSummaryProps) {
   const [activeSlide, setActiveSlide] = useState(0);
   const [calendarOpen, setCalendarOpen] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const sliderRef = useRef<HTMLDivElement>(null);
   const [monthYear, monthNum] = currentMonth.split("-").map(Number);
-  const monthStart = new Date(monthYear, monthNum - 1, 1);
-  const monthEnd = new Date(monthYear, monthNum, 0);
-  const expenseDays = Object.keys(dailyTotals).map((d) => new Date(`${d}T00:00:00`));
-  const selectedKey = selectedDate
-    ? `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, "0")}-${String(selectedDate.getDate()).padStart(2, "0")}`
-    : null;
-  const selectedTotal = selectedKey ? dailyTotals[selectedKey] ?? 0 : 0;
+  const [viewYear, setViewYear] = useState(monthYear);
+  const [viewMonth, setViewMonth] = useState(monthNum - 1);
+  const isCurrentView = viewYear === monthYear && viewMonth === monthNum - 1;
+
+  const today = new Date();
+  const isToday = (d: Date) => d.getFullYear() === today.getFullYear() && d.getMonth() === today.getMonth() && d.getDate() === today.getDate();
+
+  const calendarCells = useMemo(() => {
+    const firstDay = new Date(viewYear, viewMonth, 1).getDay();
+    const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+    const cells: (Date | null)[] = [];
+    for (let i = 0; i < firstDay; i++) cells.push(null);
+    for (let d = 1; d <= daysInMonth; d++) cells.push(new Date(viewYear, viewMonth, d));
+    return cells;
+  }, [viewYear, viewMonth]);
+
+  const dayTotal = (d: Date) => {
+    if (!isCurrentView) return 0;
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    return dailyTotals[key] ?? 0;
+  };
+
+  const shiftMonth = (delta: number) => {
+    const next = new Date(viewYear, viewMonth + delta, 1);
+    setViewYear(next.getFullYear());
+    setViewMonth(next.getMonth());
+  };
+
+  const viewLabel = new Date(viewYear, viewMonth, 1).toLocaleDateString("bn-BD", { month: "long", year: "numeric" });
+  const weekDays = ["রবি", "সোম", "মঙ্গল", "বুধ", "বৃহস্পতি", "শুক্র", "শনি"];
   const budgetUsed = budget > 0 ? (totalExpenses / budget) * 100 : totalExpenses > 0 ? 101 : 0;
   const remainingBudget = Math.max(0, budget - totalExpenses);
   const comparison = previousMonthTotal && previousMonthTotal > 0
