@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { DEFAULT_CATEGORY, getCategoryMeta } from "@/lib/expenseCategories";
 import { useCategories } from "@/hooks/useCategories";
 import { getTimeDiffInBn } from "@/lib/utils";
+import { ReceiptImage } from "@/components/ReceiptImage";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,6 +25,7 @@ export interface SearchResultItem {
   description: string;
   amount: number;
   category?: string;
+  receipt_path?: string | null;
   monthLabel: string;
   isCurrent: boolean;
 }
@@ -121,8 +123,9 @@ export function SearchResultRow({ expense, onEdit, onDelete }: Props) {
         onDoubleClick={startEdit}
       >
         <div className="flex flex-col min-w-0">
-          <span className="text-sm text-foreground truncate">
-            {getCategoryMeta(expense.category || DEFAULT_CATEGORY).emoji} {expense.description}
+          <span className="text-sm text-foreground flex items-center gap-1.5 min-w-0">
+            {expense.receipt_path && <ReceiptImage path={expense.receipt_path} size={28} />}
+            <span className="truncate">{getCategoryMeta(expense.category || DEFAULT_CATEGORY).emoji} {expense.description}</span>
           </span>
           <span className="text-[10px] text-muted-foreground">
             {new Date(expense.date).toLocaleDateString("bn-BD", { day: "numeric", month: "long", year: "numeric" })}

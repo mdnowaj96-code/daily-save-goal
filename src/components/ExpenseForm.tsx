@@ -1,14 +1,14 @@
 import { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, ImagePlus, X } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { EXPENSE_CATEGORIES, DEFAULT_CATEGORY } from "@/lib/expenseCategories";
 import { useCategories } from "@/hooks/useCategories";
 import { ManageCategoriesDialog } from "@/components/ManageCategoriesDialog";
 
 interface ExpenseFormProps {
-  onAdd: (date: string, description: string, amount: number, category: string) => void;
+  onAdd: (date: string, description: string, amount: number, category: string, photo?: File | null) => void;
 }
 
 // Get current date in Bangladesh (UTC+6) as YYYY-MM-DD
@@ -37,6 +37,9 @@ export function ExpenseForm({ onAdd }: ExpenseFormProps) {
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState<string>(DEFAULT_CATEGORY);
+  const [photo, setPhoto] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const photoInputRef = useRef<HTMLInputElement>(null);
 
   // Auto-update the date to today (BD time) at midnight, unless the user manually changed it
   useEffect(() => {
@@ -67,14 +70,30 @@ export function ExpenseForm({ onAdd }: ExpenseFormProps) {
     };
   }, []);
 
+  const handlePhotoPick = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (photoPreview) URL.revokeObjectURL(photoPreview);
+    setPhoto(file);
+    setPhotoPreview(URL.createObjectURL(file));
+  };
+
+  const clearPhoto = () => {
+    if (photoPreview) URL.revokeObjectURL(photoPreview);
+    setPhoto(null);
+    setPhotoPreview(null);
+    if (photoInputRef.current) photoInputRef.current.value = "";
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const val = parseFloat(amount);
     if (!date || !description.trim() || isNaN(val) || val <= 0) return;
-    onAdd(date, description.trim(), val, category);
+    onAdd(date, description.trim(), val, category, photo);
     setDescription("");
     setAmount("");
     setCategory(DEFAULT_CATEGORY);
+    clearPhoto();
     // After submit, snap back to current BD date for the next entry
     userEditedRef.current = false;
     setDate(getBdToday());
@@ -123,6 +142,27 @@ export function ExpenseForm({ onAdd }: ExpenseFormProps) {
         </Select>
         <ManageCategoriesDialog />
       </div>
+      <input
+        ref={photoInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handlePhotoPick}
+      />
+      {photoPreview ? (
+        <div className="flex items-center gap-2">
+          <img src={photoPreview} alt="রশিদের ছবি" className="h-14 w-14 rounded-lg object-cover border border-border/60" />
+          <span className="text-xs text-muted-foreground flex-1 truncate">{photo?.name}</span>
+          <Button type="button" variant="outline" size="sm" onClick={clearPhoto} className="h-7 gap-1">
+            <X className="h-3 w-3" /> বাদ দিন
+          </Button>
+        </div>
+      ) : (
+        <Button type="button" variant="outline" onClick={() => photoInputRef.current?.click()} className="w-full sm:w-auto gap-2 text-sm">
+          <ImagePlus className="h-4 w-4" />
+          রশিদের ছবি যোগ করুন (ঐচ্ছিক)
+        </Button>
+      )}
       <Button type="submit" className="w-full sm:w-auto sm:self-end gap-2 gradient-primary border-0 shadow-glow hover:opacity-90 transition-opacity">
         <Plus className="h-4 w-4" />
         যোগ করুন

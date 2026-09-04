@@ -58,6 +58,7 @@ interface Expense {
   amount: number;
   month: string;
   category: string;
+  receipt_path?: string | null;
 }
 
 interface MonthlyHistoryRecord {
@@ -200,6 +201,7 @@ export default function Dashboard() {
       if (expensesRes.data) {
         setExpenses(expensesRes.data.map((e) => ({
           id: e.id, date: e.date, description: e.description, amount: Number(e.amount), month: e.month, category: (e as any).category || "অন্যান্য",
+          receipt_path: (e as any).receipt_path ?? null,
         })));
       }
 

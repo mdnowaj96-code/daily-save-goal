@@ -16,6 +16,7 @@ interface Expense {
   description: string;
   amount: number;
   category?: string;
+  receipt_path?: string | null;
 }
 
 interface MonthlyHistoryItem {
@@ -30,6 +31,7 @@ interface ExpenseChartsProps {
   currentMonth?: string;
   onDeleteExpense?: (id: string) => void;
   onEditExpense?: (id: string, date: string, description: string, amount: number, category: string) => void | Promise<void>;
+  onPhotoChange?: (id: string, photo: File | null) => void | Promise<void>;
   onTabChange?: (tab: string) => void;
   salary?: number;
   allExpenses?: Expense[];
@@ -66,7 +68,7 @@ const BN_MONTHS_FULL = [
 const toBnDigits = (s: string | number) =>
   String(s).replace(/[0-9]/g, (d) => "০১২৩৪৫৬৭৮৯"[+d]);
 
-export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteExpense, onEditExpense, onTabChange, salary, allExpenses }: ExpenseChartsProps) {
+export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteExpense, onEditExpense, onPhotoChange, onTabChange, salary, allExpenses }: ExpenseChartsProps) {
   const { categories: EXPENSE_CATEGORIES } = useCategories();
   const { targets, setTarget } = useCategoryTargets();
   const [editTargetCat, setEditTargetCat] = useState<string | null>(null);
@@ -343,6 +345,7 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
                   expenses={expenses}
                   onDelete={onDeleteExpense}
                   onEdit={onEditExpense}
+                  onPhotoChange={onPhotoChange}
                   salary={salary}
                 />
               </div>
