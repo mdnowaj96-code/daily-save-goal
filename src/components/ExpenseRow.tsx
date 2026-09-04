@@ -1,11 +1,12 @@
 import { useRef, useState } from "react";
-import { Pencil, Trash2, Check, X } from "lucide-react";
+import { Pencil, Trash2, Check, X, ImagePlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { DEFAULT_CATEGORY, getCategoryMeta } from "@/lib/expenseCategories";
 import { useCategories } from "@/hooks/useCategories";
+import { ReceiptImage } from "@/components/ReceiptImage";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -23,15 +24,17 @@ export interface ExpenseRowItem {
   description: string;
   amount: number;
   category?: string;
+  receipt_path?: string | null;
 }
 
 interface Props {
   expense: ExpenseRowItem;
   onEdit?: (id: string, date: string, description: string, amount: number, category: string) => void | Promise<void>;
   onDelete: (id: string) => void;
+  onPhotoChange?: (id: string, photo: File | null) => void | Promise<void>;
 }
 
-export function ExpenseRow({ expense, onEdit, onDelete }: Props) {
+export function ExpenseRow({ expense, onEdit, onDelete, onPhotoChange }: Props) {
   const { categories } = useCategories();
   const [revealed, setRevealed] = useState(false);
   const [editing, setEditing] = useState(false);
@@ -41,6 +44,7 @@ export function ExpenseRow({ expense, onEdit, onDelete }: Props) {
   const [amount, setAmount] = useState(String(expense.amount));
   const [category, setCategory] = useState(expense.category || DEFAULT_CATEGORY);
   const startX = useRef<number | null>(null);
+  const photoInputRef = useRef<HTMLInputElement>(null);
 
   const onTouchStart = (e: React.TouchEvent) => { startX.current = e.touches[0].clientX; };
   const onTouchEnd = (e: React.TouchEvent) => {
