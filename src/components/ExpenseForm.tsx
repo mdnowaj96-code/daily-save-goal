@@ -1,14 +1,14 @@
 import { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, ImagePlus, X } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { EXPENSE_CATEGORIES, DEFAULT_CATEGORY } from "@/lib/expenseCategories";
 import { useCategories } from "@/hooks/useCategories";
 import { ManageCategoriesDialog } from "@/components/ManageCategoriesDialog";
 
 interface ExpenseFormProps {
-  onAdd: (date: string, description: string, amount: number, category: string) => void;
+  onAdd: (date: string, description: string, amount: number, category: string, photo?: File | null) => void;
 }
 
 // Get current date in Bangladesh (UTC+6) as YYYY-MM-DD
