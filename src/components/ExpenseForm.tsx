@@ -142,6 +142,27 @@ export function ExpenseForm({ onAdd }: ExpenseFormProps) {
         </Select>
         <ManageCategoriesDialog />
       </div>
+      <input
+        ref={photoInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handlePhotoPick}
+      />
+      {photoPreview ? (
+        <div className="flex items-center gap-2">
+          <img src={photoPreview} alt="রশিদের ছবি" className="h-14 w-14 rounded-lg object-cover border border-border/60" />
+          <span className="text-xs text-muted-foreground flex-1 truncate">{photo?.name}</span>
+          <Button type="button" variant="outline" size="sm" onClick={clearPhoto} className="h-7 gap-1">
+            <X className="h-3 w-3" /> বাদ দিন
+          </Button>
+        </div>
+      ) : (
+        <Button type="button" variant="outline" onClick={() => photoInputRef.current?.click()} className="w-full sm:w-auto gap-2 text-sm">
+          <ImagePlus className="h-4 w-4" />
+          রশিদের ছবি যোগ করুন (ঐচ্ছিক)
+        </Button>
+      )}
       <Button type="submit" className="w-full sm:w-auto sm:self-end gap-2 gradient-primary border-0 shadow-glow hover:opacity-90 transition-opacity">
         <Plus className="h-4 w-4" />
         যোগ করুন

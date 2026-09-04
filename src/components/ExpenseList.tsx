@@ -4,6 +4,7 @@ interface Expense {
   description: string;
   amount: number;
   category?: string;
+  receipt_path?: string | null;
 }
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ExpenseRow } from "@/components/ExpenseRow";
@@ -12,10 +13,11 @@ interface ExpenseListProps {
   expenses: Expense[];
   onDelete: (id: string) => void;
   onEdit?: (id: string, date: string, description: string, amount: number, category: string) => void | Promise<void>;
+  onPhotoChange?: (id: string, photo: File | null) => void | Promise<void>;
   salary?: number;
 }
 
-export function ExpenseList({ expenses, onDelete, onEdit, salary = 0 }: ExpenseListProps) {
+export function ExpenseList({ expenses, onDelete, onEdit, onPhotoChange, salary = 0 }: ExpenseListProps) {
   const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
 
   // Group by date
@@ -41,7 +43,7 @@ export function ExpenseList({ expenses, onDelete, onEdit, salary = 0 }: ExpenseL
         </div>
         <div className="divide-y">
           {grouped[date].map((expense) => (
-            <ExpenseRow key={expense.id} expense={expense} onEdit={onEdit} onDelete={onDelete} />
+            <ExpenseRow key={expense.id} expense={expense} onEdit={onEdit} onDelete={onDelete} onPhotoChange={onPhotoChange} />
           ))}
         </div>
       </div>
