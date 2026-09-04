@@ -89,6 +89,30 @@ export function ExpenseRow({ expense, onEdit, onDelete, onPhotoChange }: Props) 
             ))}
           </SelectContent>
         </Select>
+        {onPhotoChange && (
+          <div className="flex items-center gap-1.5">
+            <input
+              ref={photoInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) onPhotoChange(expense.id, file);
+                if (photoInputRef.current) photoInputRef.current.value = "";
+              }}
+            />
+            {expense.receipt_path && <ReceiptImage path={expense.receipt_path} size={28} />}
+            <Button size="sm" variant="outline" onClick={() => photoInputRef.current?.click()} className="h-7 gap-1 text-xs">
+              <ImagePlus className="h-3 w-3" />{expense.receipt_path ? "ছবি পরিবর্তন" : "ছবি যোগ"}
+            </Button>
+            {expense.receipt_path && (
+              <Button size="sm" variant="outline" onClick={() => onPhotoChange(expense.id, null)} className="h-7 gap-1 text-xs text-destructive">
+                <Trash2 className="h-3 w-3" />
+              </Button>
+            )}
+          </div>
+        )}
         <div className="flex gap-1.5">
           <Button size="sm" onClick={save} className="h-7 gap-1 flex-1"><Check className="h-3 w-3" />সংরক্ষণ</Button>
           <Button size="sm" variant="outline" onClick={() => setEditing(false)} className="h-7 gap-1"><X className="h-3 w-3" /></Button>
@@ -125,6 +149,7 @@ export function ExpenseRow({ expense, onEdit, onDelete, onPhotoChange }: Props) 
         onDoubleClick={startEdit}
       >
         <span className="text-sm text-foreground flex items-center gap-1.5 min-w-0">
+          {expense.receipt_path && <ReceiptImage path={expense.receipt_path} size={28} />}
           <span className="shrink-0">{getCategoryMeta(expense.category || DEFAULT_CATEGORY).emoji}</span>
           <span className="truncate">{expense.description}</span>
         </span>
