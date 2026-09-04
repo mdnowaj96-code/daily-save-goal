@@ -208,6 +208,59 @@ export function DashboardSummary({
         </div>
       </div>
 
+      <Dialog open={calendarOpen} onOpenChange={setCalendarOpen}>
+        <DialogContent className="w-[calc(100vw-2rem)] max-w-md rounded-2xl p-5">
+          <DialogHeader>
+            <DialogTitle className="text-left text-xl font-bold text-foreground">মাসের ক্যালেন্ডার</DialogTitle>
+            <DialogDescription className="text-left">দিনভিত্তিক খরচ দেখুন</DialogDescription>
+          </DialogHeader>
+
+          <div className="flex items-center justify-between rounded-xl bg-muted/60 px-2 py-1.5">
+            <button type="button" onClick={() => shiftMonth(-1)} aria-label="আগের মাস" className="flex h-9 w-9 items-center justify-center rounded-lg text-primary transition-colors hover:bg-primary/10">
+              <ChevronLeft className="h-5 w-5" />
+            </button>
+            <span className="text-base font-bold text-primary">{viewLabel}</span>
+            <button type="button" onClick={() => shiftMonth(1)} aria-label="পরের মাস" className="flex h-9 w-9 items-center justify-center rounded-lg text-primary transition-colors hover:bg-primary/10">
+              <ChevronRight className="h-5 w-5" />
+            </button>
+          </div>
+
+          <div className="mt-3 grid grid-cols-7 gap-1 text-center">
+            {weekDays.map((w) => (
+              <span key={w} className="pb-1 text-[11px] font-semibold text-muted-foreground">{w}</span>
+            ))}
+            {calendarCells.map((cell, i) => {
+              if (!cell) return <span key={`e-${i}`} />;
+              const total = dayTotal(cell);
+              const current = isToday(cell) && isCurrentView;
+              return (
+                <div
+                  key={cell.toISOString()}
+                  className={cn(
+                    "flex min-h-[52px] flex-col items-center justify-start rounded-xl py-1.5",
+                    current ? "bg-primary text-primary-foreground" : total > 0 ? "bg-muted/60" : ""
+                  )}
+                >
+                  <span className={cn("text-sm font-bold leading-tight", current ? "text-primary-foreground" : "text-foreground")}>
+                    {cell.getDate().toLocaleString("bn-BD")}
+                  </span>
+                  {total > 0 && (
+                    <span className={cn("text-[9px] font-semibold leading-tight", current ? "text-primary-foreground/90" : "text-primary")}>
+                      {formatMoney(total)}
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="mt-2 flex items-center justify-center gap-2 text-xs font-medium text-muted-foreground">
+            <span className="h-2.5 w-2.5 rounded-full bg-primary/30" />
+            যেদিন খরচ হয়েছে
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <div className="flex items-center justify-center gap-1.5 pb-4" aria-label="সারাংশ প্যানেল নির্বাচন">
         {[0, 1].map((index) => (
           <Button
