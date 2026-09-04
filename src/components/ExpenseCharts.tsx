@@ -16,6 +16,7 @@ interface Expense {
   description: string;
   amount: number;
   category?: string;
+  receipt_path?: string | null;
 }
 
 interface MonthlyHistoryItem {
@@ -30,6 +31,7 @@ interface ExpenseChartsProps {
   currentMonth?: string;
   onDeleteExpense?: (id: string) => void;
   onEditExpense?: (id: string, date: string, description: string, amount: number, category: string) => void | Promise<void>;
+  onPhotoChange?: (id: string, photo: File | null) => void | Promise<void>;
   onTabChange?: (tab: string) => void;
   salary?: number;
   allExpenses?: Expense[];
