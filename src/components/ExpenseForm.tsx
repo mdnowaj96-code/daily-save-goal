@@ -37,6 +37,9 @@ export function ExpenseForm({ onAdd }: ExpenseFormProps) {
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState<string>(DEFAULT_CATEGORY);
+  const [photo, setPhoto] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const photoInputRef = useRef<HTMLInputElement>(null);
 
   // Auto-update the date to today (BD time) at midnight, unless the user manually changed it
   useEffect(() => {
@@ -67,14 +70,30 @@ export function ExpenseForm({ onAdd }: ExpenseFormProps) {
     };
   }, []);
 
+  const handlePhotoPick = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (photoPreview) URL.revokeObjectURL(photoPreview);
+    setPhoto(file);
+    setPhotoPreview(URL.createObjectURL(file));
+  };
+
+  const clearPhoto = () => {
+    if (photoPreview) URL.revokeObjectURL(photoPreview);
+    setPhoto(null);
+    setPhotoPreview(null);
+    if (photoInputRef.current) photoInputRef.current.value = "";
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const val = parseFloat(amount);
     if (!date || !description.trim() || isNaN(val) || val <= 0) return;
-    onAdd(date, description.trim(), val, category);
+    onAdd(date, description.trim(), val, category, photo);
     setDescription("");
     setAmount("");
     setCategory(DEFAULT_CATEGORY);
+    clearPhoto();
     // After submit, snap back to current BD date for the next entry
     userEditedRef.current = false;
     setDate(getBdToday());

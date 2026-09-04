@@ -68,7 +68,7 @@ const BN_MONTHS_FULL = [
 const toBnDigits = (s: string | number) =>
   String(s).replace(/[0-9]/g, (d) => "০১২৩৪৫৬৭৮৯"[+d]);
 
-export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteExpense, onEditExpense, onTabChange, salary, allExpenses }: ExpenseChartsProps) {
+export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteExpense, onEditExpense, onPhotoChange, onTabChange, salary, allExpenses }: ExpenseChartsProps) {
   const { categories: EXPENSE_CATEGORIES } = useCategories();
   const { targets, setTarget } = useCategoryTargets();
   const [editTargetCat, setEditTargetCat] = useState<string | null>(null);
@@ -345,6 +345,7 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
                   expenses={expenses}
                   onDelete={onDeleteExpense}
                   onEdit={onEditExpense}
+                  onPhotoChange={onPhotoChange}
                   salary={salary}
                 />
               </div>
