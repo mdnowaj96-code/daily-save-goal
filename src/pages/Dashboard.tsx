@@ -331,6 +331,11 @@ export default function Dashboard() {
     }
   }, [user, settings.currentMonth]);
 
+  const handleAddExpenseAndClose = useCallback(async (date: string, description: string, amount: number, category: string, photo?: File | null) => {
+    await handleAddExpense(date, description, amount, category, photo);
+    setExpenseFormOpen(false);
+  }, [handleAddExpense]);
+
   const handlePhotoChange = useCallback(async (id: string, photo: File | null) => {
     if (!user) return;
     const current = expenses.find((e) => e.id === id);
