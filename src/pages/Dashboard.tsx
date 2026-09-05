@@ -113,6 +113,7 @@ export default function Dashboard() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [savingsDialogOpen, setSavingsDialogOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
+  const [expenseFormOpen, setExpenseFormOpen] = useState(false);
 
   const toggleFilterCategory = (key: string) =>
     setFilterCategories((prev) => (prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]));
