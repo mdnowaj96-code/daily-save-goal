@@ -302,7 +302,7 @@ export default function Dashboard() {
     .filter((record) => record.month < settings.currentMonth)
     .sort((a, b) => b.month.localeCompare(a.month))[0]?.total_expenses;
 
-  const handleAddExpense = useCallback(async (date: string, description: string, amount: number, category: string) => {
+  const handleAddExpense = useCallback(async (date: string, description: string, amount: number, category: string, photo?: File | null) => {
     if (!user) return;
     const month = settings.currentMonth;
     const { data, error } = await supabase.from("expenses").insert({
@@ -310,21 +310,69 @@ export default function Dashboard() {
     }).select().single();
 
     if (data && !error) {
+      let receiptPath: string | null = null;
+      if (photo) {
+        const ext = (photo.name.split(".").pop() || "jpg").toLowerCase();
+        const path = `${user.id}/${data.id}.${ext}`;
+        const { error: upErr } = await supabase.storage.from("receipts").upload(path, photo, { upsert: true });
+        if (!upErr) {
+          receiptPath = path;
+          await supabase.from("expenses").update({ receipt_path: path } as any).eq("id", data.id).eq("user_id", user.id);
+        } else {
+          toast.error("ছবি আপলোড করা যায়নি");
+        }
+      }
       setExpenses((prev) => [{
         id: data.id, date: data.date, description: data.description, amount: Number(data.amount), month: data.month, category: (data as any).category || category,
+        receipt_path: receiptPath,
       }, ...prev]);
     }
   }, [user, settings.currentMonth]);
 
+  const handlePhotoChange = useCallback(async (id: string, photo: File | null) => {
+    if (!user) return;
+    const current = expenses.find((e) => e.id === id);
+    if (!current) return;
+
+    // Remove old file if it exists
+    if (current.receipt_path) {
+      await supabase.storage.from("receipts").remove([current.receipt_path]);
+    }
+
+    let receiptPath: string | null = null;
+    if (photo) {
+      const ext = (photo.name.split(".").pop() || "jpg").toLowerCase();
+      const path = `${user.id}/${id}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("receipts").upload(path, photo, { upsert: true });
+      if (upErr) {
+        toast.error("ছবি আপলোড করা যায়নি");
+        return;
+      }
+      receiptPath = path;
+    }
+
+    const { error } = await supabase.from("expenses").update({ receipt_path: receiptPath } as any).eq("id", id).eq("user_id", user.id);
+    if (error) {
+      toast.error("ছবি সংরক্ষণে সমস্যা হয়েছে");
+      return;
+    }
+    setExpenses((prev) => prev.map((e) => e.id === id ? { ...e, receipt_path: receiptPath } : e));
+    toast.success(photo ? "ছবি সংরক্ষিত হয়েছে" : "ছবি মুছে গেছে");
+  }, [user, expenses]);
+
   const handleDeleteExpense = useCallback(async (id: string) => {
     if (!user) return;
+    const target = expenses.find((e) => e.id === id);
     const { error } = await supabase.from("expenses").delete().eq("id", id).eq("user_id", user.id);
     if (error) {
       toast.error("খরচ মুছতে সমস্যা হয়েছে");
       return;
     }
+    if (target?.receipt_path) {
+      await supabase.storage.from("receipts").remove([target.receipt_path]);
+    }
     setExpenses((prev) => prev.filter((e) => e.id !== id));
-  }, [user]);
+  }, [user, expenses]);
 
   const handleEditExpense = useCallback(async (id: string, date: string, description: string, amount: number, category: string) => {
     if (!user) return;
@@ -763,6 +811,7 @@ export default function Dashboard() {
           currentMonth={settings.currentMonth}
           onDeleteExpense={handleDeleteExpense}
           onEditExpense={handleEditExpense}
+          onPhotoChange={handlePhotoChange}
           onTabChange={(t) => setActiveChart(t as "daily" | "monthly" | "category")}
           salary={settings.salary}
         />
