@@ -863,6 +863,15 @@ export default function Dashboard() {
         </AlertDialog>
       </main>
 
+      <button
+        type="button"
+        onClick={() => setExpenseFormOpen(true)}
+        aria-label="নতুন খরচ যোগ করুন"
+        className="fixed bottom-5 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full gradient-primary text-primary-foreground shadow-glow transition-transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary/50"
+      >
+        <Plus className="h-7 w-7" />
+      </button>
+
       {user && (
         <SavingsDialog open={savingsDialogOpen} onOpenChange={setSavingsDialogOpen} userId={user.id} />
       )}
