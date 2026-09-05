@@ -810,7 +810,16 @@ export default function Dashboard() {
           }}
         />
 
-        <ExpenseForm onAdd={handleAddExpense} />
+        <Dialog open={expenseFormOpen} onOpenChange={setExpenseFormOpen}>
+          <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl p-5">
+            <DialogHeader>
+              <DialogTitle className="text-lg font-bold text-foreground">নতুন খরচ যোগ করুন</DialogTitle>
+              <DialogDescription className="text-sm text-muted-foreground">নতুন খরচের তথ্য পূরণ করুন</DialogDescription>
+            </DialogHeader>
+            <ExpenseForm onAdd={handleAddExpenseAndClose} />
+          </DialogContent>
+        </Dialog>
+
         <ExpenseCharts
           expenses={activeExpenses}
           allExpenses={expenses}
