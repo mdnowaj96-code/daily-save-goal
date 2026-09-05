@@ -7,7 +7,7 @@ import { SavingsDialog } from "@/components/SavingsDialog";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { LogOut, Loader2, CalendarCheck, History, FileDown } from "lucide-react";
+import { LogOut, Loader2, CalendarCheck, History, FileDown, Plus } from "lucide-react";
 import { Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { SlidersHorizontal, ChevronDown } from "lucide-react";
@@ -34,6 +34,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -112,6 +113,7 @@ export default function Dashboard() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [savingsDialogOpen, setSavingsDialogOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
+  const [expenseFormOpen, setExpenseFormOpen] = useState(false);
 
   const toggleFilterCategory = (key: string) =>
     setFilterCategories((prev) => (prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]));
@@ -328,6 +330,11 @@ export default function Dashboard() {
       }, ...prev]);
     }
   }, [user, settings.currentMonth]);
+
+  const handleAddExpenseAndClose = useCallback(async (date: string, description: string, amount: number, category: string, photo?: File | null) => {
+    await handleAddExpense(date, description, amount, category, photo);
+    setExpenseFormOpen(false);
+  }, [handleAddExpense]);
 
   const handlePhotoChange = useCallback(async (id: string, photo: File | null) => {
     if (!user) return;
@@ -803,7 +810,16 @@ export default function Dashboard() {
           }}
         />
 
-        <ExpenseForm onAdd={handleAddExpense} />
+        <Dialog open={expenseFormOpen} onOpenChange={setExpenseFormOpen}>
+          <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl p-5">
+            <DialogHeader>
+              <DialogTitle className="text-lg font-bold text-foreground">নতুন খরচ যোগ করুন</DialogTitle>
+              <DialogDescription className="text-sm text-muted-foreground">নতুন খরচের তথ্য পূরণ করুন</DialogDescription>
+            </DialogHeader>
+            <ExpenseForm onAdd={handleAddExpenseAndClose} />
+          </DialogContent>
+        </Dialog>
+
         <ExpenseCharts
           expenses={activeExpenses}
           allExpenses={expenses}
@@ -846,6 +862,15 @@ export default function Dashboard() {
           </AlertDialogContent>
         </AlertDialog>
       </main>
+
+      <button
+        type="button"
+        onClick={() => setExpenseFormOpen(true)}
+        aria-label="নতুন খরচ যোগ করুন"
+        className="fixed bottom-5 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full gradient-primary text-primary-foreground shadow-glow transition-transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-primary/50"
+      >
+        <Plus className="h-7 w-7" />
+      </button>
 
       {user && (
         <SavingsDialog open={savingsDialogOpen} onOpenChange={setSavingsDialogOpen} userId={user.id} />
