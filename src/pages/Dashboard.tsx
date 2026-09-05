@@ -362,13 +362,17 @@ export default function Dashboard() {
 
   const handleDeleteExpense = useCallback(async (id: string) => {
     if (!user) return;
+    const target = expenses.find((e) => e.id === id);
     const { error } = await supabase.from("expenses").delete().eq("id", id).eq("user_id", user.id);
     if (error) {
       toast.error("খরচ মুছতে সমস্যা হয়েছে");
       return;
     }
+    if (target?.receipt_path) {
+      await supabase.storage.from("receipts").remove([target.receipt_path]);
+    }
     setExpenses((prev) => prev.filter((e) => e.id !== id));
-  }, [user]);
+  }, [user, expenses]);
 
   const handleEditExpense = useCallback(async (id: string, date: string, description: string, amount: number, category: string) => {
     if (!user) return;
