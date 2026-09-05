@@ -7,7 +7,7 @@ import { SavingsDialog } from "@/components/SavingsDialog";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { LogOut, Loader2, CalendarCheck, History, FileDown } from "lucide-react";
+import { LogOut, Loader2, CalendarCheck, History, FileDown, Plus } from "lucide-react";
 import { Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { SlidersHorizontal, ChevronDown } from "lucide-react";
