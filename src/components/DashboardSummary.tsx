@@ -230,8 +230,8 @@ export function DashboardSummary({
           </div>
 
           <div className="mt-3 grid grid-cols-7 gap-1 text-center">
-            {weekDays.map((w) => (
-              <span key={w} className="pb-1 text-[11px] font-semibold text-muted-foreground">{w}</span>
+            {weekDays.map((w, idx) => (
+              <span key={w} className={cn("pb-1 text-[11px] font-semibold", isWeekendColumn(idx) ? "text-budget-danger" : "text-muted-foreground")}>{w}</span>
             ))}
             {calendarCells.map((cell, i) => {
               if (!cell) return <span key={`e-${i}`} />;
