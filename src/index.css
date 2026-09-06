@@ -39,6 +39,7 @@
     --budget-warning: 38 92% 50%;
     --budget-danger: 0 72% 51%;
     --budget-over: 0 72% 32%;
+    --monthly-bar: 161 56% 39%;
 
     --salary: 210 70% 50%;
     --needs: 340 65% 55%;
@@ -97,6 +98,7 @@
     --budget-warning: 38 92% 55%;
     --budget-danger: 0 72% 58%;
     --budget-over: 0 64% 42%;
+    --monthly-bar: 161 56% 44%;
     --gradient-primary: linear-gradient(135deg, hsl(212 100% 54%), hsl(179 68% 42%));
     --gradient-summary: linear-gradient(135deg, hsl(212 100% 54%), hsl(179 68% 42%));
     --gradient-card: linear-gradient(160deg, hsl(222 30% 10%), hsl(222 35% 7%));
