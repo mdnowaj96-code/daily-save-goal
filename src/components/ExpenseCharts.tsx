@@ -361,8 +361,8 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
                   <BarChart data={monthlyData} margin={{ top: 24, right: 5, left: 0, bottom: 5 }} barCategoryGap="35%">
                     <defs>
                       <linearGradient id="monthlyBarGreen" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="hsl(150, 65%, 45%)" stopOpacity={1} />
-                        <stop offset="100%" stopColor="hsl(150, 65%, 35%)" stopOpacity={0.9} />
+                        <stop offset="0%" stopColor="hsl(var(--monthly-bar))" />
+                        <stop offset="100%" stopColor="hsl(var(--monthly-bar))" />
                       </linearGradient>
                       <linearGradient id="monthlyBarRed" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0%" stopColor="hsl(0, 78%, 58%)" stopOpacity={1} />
