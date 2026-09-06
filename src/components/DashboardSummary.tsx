@@ -77,6 +77,10 @@ export function DashboardSummary({
 
   const viewLabel = new Date(viewYear, viewMonth, 1).toLocaleDateString("bn-BD", { month: "long", year: "numeric" });
   const weekDays = ["রবি", "সোম", "মঙ্গল", "বুধ", "বৃহস্পতি", "শুক্র", "শনি"];
+  const isWeekendColumn = (index: number) => {
+    const col = index % 7;
+    return col === 5 || col === 6;
+  };
   const budgetUsed = budget > 0 ? (totalExpenses / budget) * 100 : totalExpenses > 0 ? 101 : 0;
   const remainingBudget = Math.max(0, budget - totalExpenses);
   const comparison = previousMonthTotal && previousMonthTotal > 0
@@ -226,8 +230,8 @@ export function DashboardSummary({
           </div>
 
           <div className="mt-3 grid grid-cols-7 gap-1 text-center">
-            {weekDays.map((w) => (
-              <span key={w} className="pb-1 text-[11px] font-semibold text-muted-foreground">{w}</span>
+            {weekDays.map((w, idx) => (
+              <span key={w} className={cn("pb-1 text-[11px] font-semibold", isWeekendColumn(idx) ? "text-budget-danger" : "text-muted-foreground")}>{w}</span>
             ))}
             {calendarCells.map((cell, i) => {
               if (!cell) return <span key={`e-${i}`} />;
@@ -241,11 +245,11 @@ export function DashboardSummary({
                     current ? "bg-primary text-primary-foreground" : total > 0 ? "bg-muted/60" : ""
                   )}
                 >
-                  <span className={cn("text-sm font-bold leading-tight", current ? "text-primary-foreground" : "text-foreground")}>
+                  <span className={cn("text-sm font-bold leading-tight", current ? "text-primary-foreground" : isWeekendColumn(i) ? "text-budget-danger" : "text-foreground")}>
                     {cell.getDate().toLocaleString("bn-BD")}
                   </span>
                   {total > 0 && (
-                    <span className={cn("text-[9px] font-semibold leading-tight", current ? "text-primary-foreground/90" : "text-primary")}>
+                    <span className={cn("text-[9px] font-semibold leading-tight", current ? "text-primary-foreground/90" : isWeekendColumn(i) ? "text-budget-danger" : "text-primary")}>
                       {formatMoney(total)}
                     </span>
                   )}
