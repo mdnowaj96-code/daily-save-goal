@@ -142,14 +142,14 @@ export function DashboardSummary({
               <p className="mt-1 break-words text-3xl font-bold leading-tight tabular-nums">{formatMoney(totalExpenses)}</p>
               <div className="mt-4 flex flex-wrap items-center gap-2">
                 {comparison === null ? (
-                  <span className="rounded-md bg-primary-foreground/15 px-2.5 py-1 text-xs font-semibold">চলতি মাসের হিসাব</span>
+                  <span className="badge-pill rounded-full px-3 py-1 text-xs font-bold text-primary-foreground">চলতি মাসের হিসাব</span>
                 ) : (
-                  <span className="flex items-center gap-1 rounded-md bg-primary-foreground/15 px-2.5 py-1 text-xs font-semibold">
+                  <span className="badge-pill flex items-center gap-1 rounded-full px-3 py-1 text-xs font-bold text-primary-foreground">
                     {comparison <= 0 ? <TrendingDown className="h-3.5 w-3.5" /> : <TrendingUp className="h-3.5 w-3.5" />}
                     {Math.abs(comparison).toLocaleString("bn-BD", { maximumFractionDigits: 1 })}%
                   </span>
                 )}
-                {comparison !== null && <span className="text-xs text-primary-foreground/75">গত মাসের তুলনায়</span>}
+                {comparison !== null && <span className="text-xs font-medium text-primary-foreground/80">গত মাসের তুলনায়</span>}
               </div>
             </div>
 
