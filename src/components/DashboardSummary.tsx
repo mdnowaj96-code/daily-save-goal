@@ -245,11 +245,11 @@ export function DashboardSummary({
                     current ? "bg-primary text-primary-foreground" : total > 0 ? "bg-muted/60" : ""
                   )}
                 >
-                  <span className={cn("text-sm font-bold leading-tight", current ? "text-primary-foreground" : "text-foreground")}>
+                  <span className={cn("text-sm font-bold leading-tight", current ? "text-primary-foreground" : isWeekendColumn(i) ? "text-budget-danger" : "text-foreground")}>
                     {cell.getDate().toLocaleString("bn-BD")}
                   </span>
                   {total > 0 && (
-                    <span className={cn("text-[9px] font-semibold leading-tight", current ? "text-primary-foreground/90" : "text-primary")}>
+                    <span className={cn("text-[9px] font-semibold leading-tight", current ? "text-primary-foreground/90" : isWeekendColumn(i) ? "text-budget-danger" : "text-primary")}>
                       {formatMoney(total)}
                     </span>
                   )}
