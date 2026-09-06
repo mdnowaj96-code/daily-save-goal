@@ -77,6 +77,10 @@ export function DashboardSummary({
 
   const viewLabel = new Date(viewYear, viewMonth, 1).toLocaleDateString("bn-BD", { month: "long", year: "numeric" });
   const weekDays = ["রবি", "সোম", "মঙ্গল", "বুধ", "বৃহস্পতি", "শুক্র", "শনি"];
+  const isWeekendColumn = (index: number) => {
+    const col = index % 7;
+    return col === 5 || col === 6;
+  };
   const budgetUsed = budget > 0 ? (totalExpenses / budget) * 100 : totalExpenses > 0 ? 101 : 0;
   const remainingBudget = Math.max(0, budget - totalExpenses);
   const comparison = previousMonthTotal && previousMonthTotal > 0
