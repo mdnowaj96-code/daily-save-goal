@@ -853,15 +853,7 @@ export default function Dashboard() {
 
         <InstallAppButton />
 
-        <UpdateAppButton />
-
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <Button variant="outline" className="gap-2 border-primary/30 text-primary hover:bg-primary/10">
-              <CalendarCheck className="h-4 w-4" />
-              মাস ক্লোজ করুন
-            </Button>
-          </AlertDialogTrigger>
+        <AlertDialog open={closeMonthOpen} onOpenChange={setCloseMonthOpen}>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>মাস ক্লোজ করবেন?</AlertDialogTitle>
