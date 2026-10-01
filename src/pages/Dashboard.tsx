@@ -111,6 +111,7 @@ export default function Dashboard() {
   const [filterCategories, setFilterCategories] = useState<string[]>([]);
   const [openSearchCat, setOpenSearchCat] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [closeMonthOpen, setCloseMonthOpen] = useState(false);
   const [savingsDialogOpen, setSavingsDialogOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   const [expenseFormOpen, setExpenseFormOpen] = useState(false);
@@ -622,6 +623,19 @@ export default function Dashboard() {
                 >
                   <span aria-hidden>💰</span>
                   সঞ্চয়
+                </button>
+                <div className="my-1 h-px bg-border" />
+                <UpdateAppButton className="w-full justify-start h-9 rounded-md px-3 text-sm font-normal border-0 shadow-none hover:bg-muted" />
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    setCloseMonthOpen(true);
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-muted"
+                >
+                  <CalendarCheck className="h-4 w-4" />
+                  মাস ক্লোজ করুন
                 </button>
               </PopoverContent>
             </Popover>

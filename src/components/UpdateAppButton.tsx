@@ -2,8 +2,9 @@ import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
-export function UpdateAppButton() {
+export function UpdateAppButton({ className }: { className?: string }) {
   const [updating, setUpdating] = useState(false);
 
   const handleUpdate = async () => {
@@ -49,7 +50,7 @@ export function UpdateAppButton() {
       variant="outline"
       onClick={handleUpdate}
       disabled={updating}
-      className="gap-2 border-primary/30 text-primary hover:bg-primary/10"
+      className={cn("gap-2 border-primary/30 text-primary hover:bg-primary/10", className)}
     >
       <RefreshCw className={`h-4 w-4 ${updating ? "animate-spin" : ""}`} />
       {updating ? "আপডেট হচ্ছে..." : "আপডেট করুন"}
