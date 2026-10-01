@@ -39,6 +39,7 @@ export function DashboardSummary({
   previousMonthTotal,
   dailyTrend,
   dailyTotals = {},
+  allDailyTotals = {},
   needs,
   wants,
   savings,
@@ -65,9 +66,8 @@ export function DashboardSummary({
   }, [viewYear, viewMonth]);
 
   const dayTotal = (d: Date) => {
-    if (!isCurrentView) return 0;
     const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-    return dailyTotals[key] ?? 0;
+    return (isCurrentView ? dailyTotals[key] : allDailyTotals[key]) ?? 0;
   };
 
   const shiftMonth = (delta: number) => {
