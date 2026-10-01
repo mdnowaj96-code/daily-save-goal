@@ -804,6 +804,7 @@ export default function Dashboard() {
           previousMonthTotal={previousMonthTotal}
           dailyTrend={dailyTrend}
           dailyTotals={dailyTotals}
+          allDailyTotals={allDailyTotals}
           onSalaryEdit={(value) => updateSettings({ ...settings, salary: value })}
           needs={{
             amount: needsRemaining,
