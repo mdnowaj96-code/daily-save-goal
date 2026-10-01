@@ -301,6 +301,10 @@ export default function Dashboard() {
     return totals;
   }, {});
   const dailyTrend = Object.keys(dailyTotals).sort().slice(-8).map((date) => dailyTotals[date]);
+  const allDailyTotals = expenses.reduce<Record<string, number>>((totals, expense) => {
+    totals[expense.date] = (totals[expense.date] ?? 0) + expense.amount;
+    return totals;
+  }, {});
   const previousMonthTotal = history
     .filter((record) => record.month < settings.currentMonth)
     .sort((a, b) => b.month.localeCompare(a.month))[0]?.total_expenses;
@@ -800,6 +804,7 @@ export default function Dashboard() {
           previousMonthTotal={previousMonthTotal}
           dailyTrend={dailyTrend}
           dailyTotals={dailyTotals}
+          allDailyTotals={allDailyTotals}
           onSalaryEdit={(value) => updateSettings({ ...settings, salary: value })}
           needs={{
             amount: needsRemaining,
