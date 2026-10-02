@@ -25,6 +25,8 @@ export function SavingsDialog({ open, onOpenChange, userId }: {
   const [person, setPerson] = useState("");
   const [loanAmount, setLoanAmount] = useState("");
   const [loanDate, setLoanDate] = useState(today());
+  const [editingDeposit, setEditingDeposit] = useState<Deposit | null>(null);
+  const [editingLoan, setEditingLoan] = useState<Loan | null>(null);
 
   const load = useCallback(async () => {
     const [d, l] = await Promise.all([
