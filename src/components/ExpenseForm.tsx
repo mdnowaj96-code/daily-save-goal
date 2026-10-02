@@ -37,6 +37,7 @@ export function ExpenseForm({ onAdd }: ExpenseFormProps) {
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState<string>(DEFAULT_CATEGORY);
+  const [addedMsg, setAddedMsg] = useState(false);
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
