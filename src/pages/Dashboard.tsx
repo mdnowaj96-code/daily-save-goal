@@ -336,10 +336,6 @@ export default function Dashboard() {
     }
   }, [user, settings.currentMonth]);
 
-  const handleAddExpenseAndClose = useCallback(async (date: string, description: string, amount: number, category: string, photo?: File | null) => {
-    await handleAddExpense(date, description, amount, category, photo);
-    setExpenseFormOpen(false);
-  }, [handleAddExpense]);
 
   const handlePhotoChange = useCallback(async (id: string, photo: File | null) => {
     if (!user) return;
@@ -835,7 +831,7 @@ export default function Dashboard() {
               <DialogTitle className="text-lg font-bold text-foreground">নতুন খরচ যোগ করুন</DialogTitle>
               <DialogDescription className="text-sm text-muted-foreground">নতুন খরচের তথ্য পূরণ করুন</DialogDescription>
             </DialogHeader>
-            <ExpenseForm onAdd={handleAddExpenseAndClose} />
+            <ExpenseForm onAdd={handleAddExpense} />
           </DialogContent>
         </Dialog>
 
