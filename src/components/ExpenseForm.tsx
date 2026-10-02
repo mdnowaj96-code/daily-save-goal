@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Plus, ImagePlus, X } from "lucide-react";
+import { Plus, ImagePlus, X, Check } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { EXPENSE_CATEGORIES, DEFAULT_CATEGORY } from "@/lib/expenseCategories";
 import { useCategories } from "@/hooks/useCategories";
@@ -168,6 +168,12 @@ export function ExpenseForm({ onAdd }: ExpenseFormProps) {
           <ImagePlus className="h-4 w-4" />
           রশিদের ছবি যোগ করুন (ঐচ্ছিক)
         </Button>
+      )}
+      {addedMsg && (
+        <div className="flex items-center gap-1.5 text-sm text-emerald-600 font-medium">
+          <Check className="h-4 w-4" />
+          খরচ যোগ হয়েছে
+        </div>
       )}
       <Button type="submit" className="w-full sm:w-auto sm:self-end gap-2 gradient-primary border-0 shadow-glow hover:opacity-90 transition-opacity">
         <Plus className="h-4 w-4" />
