@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Trash2 } from "lucide-react";
+import { Check, Pencil, Trash2, X } from "lucide-react";
 import { toast } from "sonner";
 
 const METHODS = ["রকেট", "বিকাশ", "নগদ", "অগ্রণী", "ডাচ বাংলা"];
