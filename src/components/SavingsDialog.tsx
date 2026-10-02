@@ -135,12 +135,33 @@ export function SavingsDialog({ open, onOpenChange, userId }: {
           {deposits.length > 0 && (
             <div className="flex flex-col gap-1.5 max-h-40 overflow-y-auto pr-1">
               {deposits.map((d) => (
-                <div key={d.id} className="flex items-center justify-between text-xs border-b pb-1">
-                  <span className="text-muted-foreground">{new Date(d.date).toLocaleDateString("bn-BD")} • {d.method}</span>
-                  <span className="flex items-center gap-2 font-medium">৳{bn(d.amount)}
-                    <button onClick={() => del("savings_deposits", d.id)} aria-label="মুছুন" className="text-destructive"><Trash2 className="h-3.5 w-3.5" /></button>
-                  </span>
-                </div>
+                editingDeposit?.id === d.id ? (
+                  <div key={d.id} className="flex flex-col gap-1.5 border-b pb-2">
+                    <div className="grid grid-cols-2 gap-2">
+                      <select
+                        value={editingDeposit.method}
+                        onChange={(e) => setEditingDeposit({ ...editingDeposit, method: e.target.value })}
+                        className="h-8 rounded-md border border-input bg-background px-2 text-xs"
+                      >
+                        {METHODS.map((m) => <option key={m} value={m}>{m}</option>)}
+                      </select>
+                      <Input type="date" value={editingDeposit.date} onChange={(e) => setEditingDeposit({ ...editingDeposit, date: e.target.value })} className="h-8 text-xs" />
+                    </div>
+                    <Input type="number" inputMode="decimal" value={editingDeposit.amount} onChange={(e) => setEditingDeposit({ ...editingDeposit, amount: Number(e.target.value) })} className="h-8 text-xs" />
+                    <div className="flex gap-1.5">
+                      <Button size="sm" onClick={saveDeposit} className="h-7 gap-1 flex-1 text-xs"><Check className="h-3 w-3" />সংরক্ষণ</Button>
+                      <Button size="sm" variant="outline" onClick={() => setEditingDeposit(null)} className="h-7 gap-1"><X className="h-3 w-3" /></Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div key={d.id} className="flex items-center justify-between text-xs border-b pb-1">
+                    <span className="text-muted-foreground">{new Date(d.date).toLocaleDateString("bn-BD")} • {d.method}</span>
+                    <span className="flex items-center gap-2 font-medium">৳{bn(d.amount)}
+                      <button onClick={() => setEditingDeposit(d)} aria-label="সম্পাদনা" className="text-muted-foreground hover:text-foreground"><Pencil className="h-3.5 w-3.5" /></button>
+                      <button onClick={() => del("savings_deposits", d.id)} aria-label="মুছুন" className="text-destructive"><Trash2 className="h-3.5 w-3.5" /></button>
+                    </span>
+                  </div>
+                )
               ))}
             </div>
           )}
