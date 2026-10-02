@@ -41,6 +41,7 @@ export function ExpenseForm({ onAdd }: ExpenseFormProps) {
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
+  const addedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Auto-update the date to today (BD time) at midnight, unless the user manually changed it
   useEffect(() => {
@@ -95,6 +96,10 @@ export function ExpenseForm({ onAdd }: ExpenseFormProps) {
     setAmount("");
     setCategory(DEFAULT_CATEGORY);
     clearPhoto();
+    // Show success message but keep the form open so several expenses can be added in a row
+    setAddedMsg(true);
+    if (addedTimerRef.current) clearTimeout(addedTimerRef.current);
+    addedTimerRef.current = setTimeout(() => setAddedMsg(false), 3000);
     // After submit, snap back to current BD date for the next entry
     userEditedRef.current = false;
     setDate(getBdToday());
