@@ -52,6 +52,10 @@ export function DashboardSummary({
   const [viewYear, setViewYear] = useState(monthYear);
   const [viewMonth, setViewMonth] = useState(monthNum - 1);
   const isCurrentView = viewYear === monthYear && viewMonth === monthNum - 1;
+  const [selectStart, setSelectStart] = useState<Date | null>(null);
+  const [selectEnd, setSelectEnd] = useState<Date | null>(null);
+  const [isSelecting, setIsSelecting] = useState(false);
+  const clearSelection = () => { setSelectStart(null); setSelectEnd(null); setIsSelecting(false); };
 
   const today = new Date();
   const isToday = (d: Date) => d.getFullYear() === today.getFullYear() && d.getMonth() === today.getMonth() && d.getDate() === today.getDate();
@@ -70,10 +74,23 @@ export function DashboardSummary({
     return (isCurrentView ? dailyTotals[key] : allDailyTotals[key]) ?? 0;
   };
 
+  const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  const selectionTotal = useMemo(() => {
+    if (!selectStart || !selectEnd) return 0;
+    const lo = Math.min(startOfDay(selectStart), startOfDay(selectEnd));
+    const hi = Math.max(startOfDay(selectStart), startOfDay(selectEnd));
+    return calendarCells.reduce((sum, cell) => (cell && startOfDay(cell) >= lo && startOfDay(cell) <= hi ? sum + dayTotal(cell) : sum), 0);
+  }, [selectStart, selectEnd, calendarCells, dailyTotals, allDailyTotals, isCurrentView]);
+  const monthTotal = useMemo(
+    () => calendarCells.reduce((sum, cell) => sum + (cell ? dayTotal(cell) : 0), 0),
+    [calendarCells, dailyTotals, allDailyTotals, isCurrentView]
+  );
+
   const shiftMonth = (delta: number) => {
     const next = new Date(viewYear, viewMonth + delta, 1);
     setViewYear(next.getFullYear());
     setViewMonth(next.getMonth());
+    clearSelection();
   };
 
   const viewLabel = new Date(viewYear, viewMonth, 1).toLocaleDateString("bn-BD", { month: "long", year: "numeric" });
@@ -133,7 +150,7 @@ export function DashboardSummary({
             </div>
             <button
               type="button"
-              onClick={() => { setViewYear(monthYear); setViewMonth(monthNum - 1); setCalendarOpen(true); }}
+              onClick={() => { setViewYear(monthYear); setViewMonth(monthNum - 1); clearSelection(); setCalendarOpen(true); }}
               aria-label="মাসের ক্যালেন্ডার দেখুন"
               className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-primary transition-colors hover:bg-primary/10"
             >
@@ -217,7 +234,9 @@ export function DashboardSummary({
         <DialogContent className="w-[calc(100vw-2rem)] max-w-md rounded-2xl p-5">
           <DialogHeader>
             <DialogTitle className="text-left text-xl font-bold text-foreground">মাসের ক্যালেন্ডার</DialogTitle>
-            <DialogDescription className="text-left">দিনভিত্তিক খরচ দেখুন</DialogDescription>
+            <DialogDescription className="text-left">
+              দিনভিত্তিক খরচ দেখুন — টেনে কয়েক দিন নির্বাচন করলে সেই দিনগুলোর মোট খরচ নিচে দেখা যাবে
+            </DialogDescription>
           </DialogHeader>
 
           <div className="flex items-center justify-between rounded-xl bg-muted/60 px-2 py-1.5">
@@ -230,7 +249,11 @@ export function DashboardSummary({
             </button>
           </div>
 
-          <div className="mt-3 grid grid-cols-7 gap-1 text-center">
+          <div
+            className="mt-3 grid grid-cols-7 gap-1 text-center select-none touch-none"
+            onPointerUp={() => setIsSelecting(false)}
+            onPointerCancel={() => setIsSelecting(false)}
+          >
             {weekDays.map((w, idx) => (
               <span key={w} className={cn("pb-1 text-[11px] font-semibold", isWeekendColumn(idx) ? "text-budget-danger" : "text-muted-foreground")}>{w}</span>
             ))}
@@ -238,25 +261,56 @@ export function DashboardSummary({
               if (!cell) return <span key={`e-${i}`} />;
               const total = dayTotal(cell);
               const current = isToday(cell) && isCurrentView;
+              const inRange = selectStart && selectEnd
+                ? startOfDay(cell) >= Math.min(startOfDay(selectStart), startOfDay(selectEnd)) &&
+                  startOfDay(cell) <= Math.max(startOfDay(selectStart), startOfDay(selectEnd))
+                : false;
               return (
                 <div
                   key={cell.toISOString()}
+                  onPointerDown={(e) => {
+                    e.preventDefault();
+                    e.currentTarget.releasePointerCapture?.(e.pointerId);
+                    setSelectStart(cell);
+                    setSelectEnd(cell);
+                    setIsSelecting(true);
+                  }}
+                  onPointerEnter={() => { if (isSelecting) setSelectEnd(cell); }}
                   className={cn(
                     "flex min-h-[52px] flex-col items-center justify-start rounded-xl py-1.5",
-                    current ? "bg-primary text-primary-foreground" : total > 0 ? "bg-muted/60" : ""
+                    current ? "bg-primary text-primary-foreground" : inRange ? "bg-primary/15 ring-1 ring-primary/40" : total > 0 ? "bg-muted/60" : ""
                   )}
                 >
-                  <span className={cn("text-sm font-bold leading-tight", current ? "text-primary-foreground" : isWeekendColumn(i) ? "text-budget-danger" : "text-foreground")}>
+                  <span className={cn("text-sm font-bold leading-tight", current ? "text-primary-foreground" : inRange ? "text-primary" : isWeekendColumn(i) ? "text-budget-danger" : "text-foreground")}>
                     {cell.getDate().toLocaleString("bn-BD")}
                   </span>
                   {total > 0 && (
-                    <span className={cn("text-[9px] font-semibold leading-tight", current ? "text-primary-foreground/90" : isWeekendColumn(i) ? "text-budget-danger" : "text-primary")}>
+                    <span className={cn("text-[9px] font-semibold leading-tight", current ? "text-primary-foreground/90" : inRange ? "text-primary" : isWeekendColumn(i) ? "text-budget-danger" : "text-primary")}>
                       {formatMoney(total)}
                     </span>
                   )}
                 </div>
               );
             })}
+          </div>
+
+          <div className="mt-3 rounded-xl bg-muted/50 p-3">
+            {selectStart && selectEnd ? (
+              <div className="flex items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-[11px] font-semibold text-muted-foreground">নির্বাচিত দিনের মোট খরচ</p>
+                  <p className="mt-0.5 break-words text-lg font-bold leading-tight text-primary tabular-nums">{formatMoney(selectionTotal)}</p>
+                </div>
+                <Button type="button" variant="outline" size="sm" className="shrink-0" onClick={clearSelection}>
+                  নির্বাচন মুছুন
+                </Button>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-[11px] font-semibold text-muted-foreground">{viewLabel} মোট খরচ</p>
+                <p className="text-lg font-bold text-primary tabular-nums">{formatMoney(monthTotal)}</p>
+              </div>
+            )}
           </div>
 
           <div className="mt-2 flex items-center justify-center gap-2 text-xs font-medium text-muted-foreground">
