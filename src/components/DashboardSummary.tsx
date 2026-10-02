@@ -52,6 +52,10 @@ export function DashboardSummary({
   const [viewYear, setViewYear] = useState(monthYear);
   const [viewMonth, setViewMonth] = useState(monthNum - 1);
   const isCurrentView = viewYear === monthYear && viewMonth === monthNum - 1;
+  const [selectStart, setSelectStart] = useState<Date | null>(null);
+  const [selectEnd, setSelectEnd] = useState<Date | null>(null);
+  const [isSelecting, setIsSelecting] = useState(false);
+  const clearSelection = () => { setSelectStart(null); setSelectEnd(null); setIsSelecting(false); };
 
   const today = new Date();
   const isToday = (d: Date) => d.getFullYear() === today.getFullYear() && d.getMonth() === today.getMonth() && d.getDate() === today.getDate();
@@ -70,10 +74,23 @@ export function DashboardSummary({
     return (isCurrentView ? dailyTotals[key] : allDailyTotals[key]) ?? 0;
   };
 
+  const startOfDay = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  const selectionTotal = useMemo(() => {
+    if (!selectStart || !selectEnd) return 0;
+    const lo = Math.min(startOfDay(selectStart), startOfDay(selectEnd));
+    const hi = Math.max(startOfDay(selectStart), startOfDay(selectEnd));
+    return calendarCells.reduce((sum, cell) => (cell && startOfDay(cell) >= lo && startOfDay(cell) <= hi ? sum + dayTotal(cell) : sum), 0);
+  }, [selectStart, selectEnd, calendarCells, dailyTotals, allDailyTotals, isCurrentView]);
+  const monthTotal = useMemo(
+    () => calendarCells.reduce((sum, cell) => sum + (cell ? dayTotal(cell) : 0), 0),
+    [calendarCells, dailyTotals, allDailyTotals, isCurrentView]
+  );
+
   const shiftMonth = (delta: number) => {
     const next = new Date(viewYear, viewMonth + delta, 1);
     setViewYear(next.getFullYear());
     setViewMonth(next.getMonth());
+    clearSelection();
   };
 
   const viewLabel = new Date(viewYear, viewMonth, 1).toLocaleDateString("bn-BD", { month: "long", year: "numeric" });
@@ -133,7 +150,7 @@ export function DashboardSummary({
             </div>
             <button
               type="button"
-              onClick={() => { setViewYear(monthYear); setViewMonth(monthNum - 1); setCalendarOpen(true); }}
+              onClick={() => { setViewYear(monthYear); setViewMonth(monthNum - 1); clearSelection(); setCalendarOpen(true); }}
               aria-label="মাসের ক্যালেন্ডার দেখুন"
               className="flex h-10 w-10 items-center justify-center rounded-full bg-muted text-primary transition-colors hover:bg-primary/10"
             >
