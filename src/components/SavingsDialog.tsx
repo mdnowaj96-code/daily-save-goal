@@ -71,6 +71,25 @@ export function SavingsDialog({ open, onOpenChange, userId }: {
     await load();
   };
 
+  const saveDeposit = async () => {
+    if (!editingDeposit) return;
+    const amt = parseFloat(String(editingDeposit.amount));
+    if (isNaN(amt) || amt <= 0) { toast.error("সঠিক পরিমাণ দিন"); return; }
+    const { error } = await supabase.from("savings_deposits").update({ method: editingDeposit.method, amount: amt, date: editingDeposit.date }).eq("id", editingDeposit.id);
+    if (error) { toast.error("সংরক্ষণ করা যায়নি"); return; }
+    setEditingDeposit(null); await load(); toast.success("সঞ্চয় আপডেট হয়েছে");
+  };
+
+  const saveLoan = async () => {
+    if (!editingLoan) return;
+    const amt = parseFloat(String(editingLoan.amount));
+    if (!editingLoan.person.trim()) { toast.error("কাকে দেওয়া হয়েছে লিখুন"); return; }
+    if (isNaN(amt) || amt <= 0) { toast.error("সঠিক পরিমাণ দিন"); return; }
+    const { error } = await supabase.from("savings_loans").update({ person: editingLoan.person.trim(), amount: amt, date: editingLoan.date }).eq("id", editingLoan.id);
+    if (error) { toast.error("সংরক্ষণ করা যায়নি"); return; }
+    setEditingLoan(null); await load(); toast.success("লোন আপডেট হয়েছে");
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-[min(26rem,94vw)] max-h-[85vh] overflow-y-auto">
