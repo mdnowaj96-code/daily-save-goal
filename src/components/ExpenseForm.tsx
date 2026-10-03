@@ -4,8 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Plus, ImagePlus, X, Check } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { EXPENSE_CATEGORIES, DEFAULT_CATEGORY } from "@/lib/expenseCategories";
+import { suggestCategory } from "@/lib/autoCategory";
 import { useCategories } from "@/hooks/useCategories";
 import { ManageCategoriesDialog } from "@/components/ManageCategoriesDialog";
+import { Sparkles } from "lucide-react";
 
 interface ExpenseFormProps {
   onAdd: (date: string, description: string, amount: number, category: string, photo?: File | null) => void;
@@ -37,6 +39,8 @@ export function ExpenseForm({ onAdd }: ExpenseFormProps) {
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState<string>(DEFAULT_CATEGORY);
+  const categoryTouchedRef = useRef(false);
+  const [autoSuggested, setAutoSuggested] = useState(false);
   const [addedMsg, setAddedMsg] = useState(false);
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
@@ -87,6 +91,20 @@ export function ExpenseForm({ onAdd }: ExpenseFormProps) {
     if (photoInputRef.current) photoInputRef.current.value = "";
   };
 
+  // Auto-suggest category from the description, unless the user picked one manually
+  const handleDescriptionChange = (value: string) => {
+    setDescription(value);
+    if (categoryTouchedRef.current) return;
+    const suggested = suggestCategory(value);
+    if (suggested) {
+      setCategory(suggested);
+      setAutoSuggested(true);
+    } else {
+      setCategory(DEFAULT_CATEGORY);
+      setAutoSuggested(false);
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const val = parseFloat(amount);
@@ -95,6 +113,8 @@ export function ExpenseForm({ onAdd }: ExpenseFormProps) {
     setDescription("");
     setAmount("");
     setCategory(DEFAULT_CATEGORY);
+    categoryTouchedRef.current = false;
+    setAutoSuggested(false);
     clearPhoto();
     // Show success message but keep the form open so several expenses can be added in a row
     setAddedMsg(true);
