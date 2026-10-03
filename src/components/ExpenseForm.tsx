@@ -91,6 +91,20 @@ export function ExpenseForm({ onAdd }: ExpenseFormProps) {
     if (photoInputRef.current) photoInputRef.current.value = "";
   };
 
+  // Auto-suggest category from the description, unless the user picked one manually
+  const handleDescriptionChange = (value: string) => {
+    setDescription(value);
+    if (categoryTouchedRef.current) return;
+    const suggested = suggestCategory(value);
+    if (suggested) {
+      setCategory(suggested);
+      setAutoSuggested(true);
+    } else {
+      setCategory(DEFAULT_CATEGORY);
+      setAutoSuggested(false);
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const val = parseFloat(amount);
@@ -99,6 +113,8 @@ export function ExpenseForm({ onAdd }: ExpenseFormProps) {
     setDescription("");
     setAmount("");
     setCategory(DEFAULT_CATEGORY);
+    categoryTouchedRef.current = false;
+    setAutoSuggested(false);
     clearPhoto();
     // Show success message but keep the form open so several expenses can be added in a row
     setAddedMsg(true);
