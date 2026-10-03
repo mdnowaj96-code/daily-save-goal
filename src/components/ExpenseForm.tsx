@@ -4,8 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Plus, ImagePlus, X, Check } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { EXPENSE_CATEGORIES, DEFAULT_CATEGORY } from "@/lib/expenseCategories";
+import { suggestCategory } from "@/lib/autoCategory";
 import { useCategories } from "@/hooks/useCategories";
 import { ManageCategoriesDialog } from "@/components/ManageCategoriesDialog";
+import { Sparkles } from "lucide-react";
 
 interface ExpenseFormProps {
   onAdd: (date: string, description: string, amount: number, category: string, photo?: File | null) => void;
@@ -37,6 +39,8 @@ export function ExpenseForm({ onAdd }: ExpenseFormProps) {
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState<string>(DEFAULT_CATEGORY);
+  const categoryTouchedRef = useRef(false);
+  const [autoSuggested, setAutoSuggested] = useState(false);
   const [addedMsg, setAddedMsg] = useState(false);
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
