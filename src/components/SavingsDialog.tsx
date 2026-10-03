@@ -178,12 +178,27 @@ export function SavingsDialog({ open, onOpenChange, userId }: {
             {loans.length > 0 && (
               <div className="flex flex-col gap-1.5 max-h-32 overflow-y-auto pr-1 mt-1">
                 {loans.map((l) => (
-                  <div key={l.id} className="flex items-center justify-between text-xs border-b pb-1">
-                    <span className="text-muted-foreground">{new Date(l.date).toLocaleDateString("bn-BD")} • {l.person}</span>
-                    <span className="flex items-center gap-2 font-medium">৳{bn(l.amount)}
-                      <button onClick={() => del("savings_loans", l.id)} aria-label="মুছুন" className="text-destructive"><Trash2 className="h-3.5 w-3.5" /></button>
-                    </span>
-                  </div>
+                  editingLoan?.id === l.id ? (
+                    <div key={l.id} className="flex flex-col gap-1.5 border-b pb-2">
+                      <Input value={editingLoan.person} onChange={(e) => setEditingLoan({ ...editingLoan, person: e.target.value })} className="h-8 text-xs" />
+                      <div className="grid grid-cols-2 gap-2">
+                        <Input type="number" inputMode="decimal" value={editingLoan.amount} onChange={(e) => setEditingLoan({ ...editingLoan, amount: Number(e.target.value) })} className="h-8 text-xs" />
+                        <Input type="date" value={editingLoan.date} onChange={(e) => setEditingLoan({ ...editingLoan, date: e.target.value })} className="h-8 text-xs" />
+                      </div>
+                      <div className="flex gap-1.5">
+                        <Button size="sm" onClick={saveLoan} className="h-7 gap-1 flex-1 text-xs"><Check className="h-3 w-3" />সংরক্ষণ</Button>
+                        <Button size="sm" variant="outline" onClick={() => setEditingLoan(null)} className="h-7 gap-1"><X className="h-3 w-3" /></Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div key={l.id} className="flex items-center justify-between text-xs border-b pb-1">
+                      <span className="text-muted-foreground">{new Date(l.date).toLocaleDateString("bn-BD")} • {l.person}</span>
+                      <span className="flex items-center gap-2 font-medium">৳{bn(l.amount)}
+                        <button onClick={() => setEditingLoan(l)} aria-label="সম্পাদনা" className="text-muted-foreground hover:text-foreground"><Pencil className="h-3.5 w-3.5" /></button>
+                        <button onClick={() => del("savings_loans", l.id)} aria-label="মুছুন" className="text-destructive"><Trash2 className="h-3.5 w-3.5" /></button>
+                      </span>
+                    </div>
+                  )
                 ))}
               </div>
             )}
