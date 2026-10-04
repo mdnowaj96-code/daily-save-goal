@@ -175,6 +175,12 @@ export function ExpenseForm({ onAdd }: ExpenseFormProps) {
         </Select>
         <ManageCategoriesDialog />
       </div>
+      {autoSuggested && (
+        <div className="flex items-center gap-1.5 text-xs text-primary font-medium">
+          <Sparkles className="h-3.5 w-3.5" />
+          খাত স্বয়ংক্রিয়ভাবে নির্বাচিত হয়েছে — ভুল হলে নিজে বদলে নিন
+        </div>
+      )}
       <input
         ref={photoInputRef}
         type="file"
