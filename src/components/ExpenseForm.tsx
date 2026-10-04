@@ -141,7 +141,7 @@ export function ExpenseForm({ onAdd }: ExpenseFormProps) {
         <Input
           placeholder="খরচের বিবরণ"
           value={description}
-          onChange={(e) => setDescription(e.target.value)}
+          onChange={(e) => handleDescriptionChange(e.target.value)}
           className="text-sm"
         />
         <Input
@@ -152,8 +152,15 @@ export function ExpenseForm({ onAdd }: ExpenseFormProps) {
           className="text-sm"
         />
       </div>
-      <div className="flex gap-2">
-        <Select value={category} onValueChange={setCategory}>
+      <div className="flex gap-2 items-center">
+        <Select
+          value={category}
+          onValueChange={(v) => {
+            categoryTouchedRef.current = true;
+            setAutoSuggested(false);
+            setCategory(v);
+          }}
+        >
           <SelectTrigger className="text-sm h-10 flex-1">
             <SelectValue placeholder="ক্যাটাগরি নির্বাচন করুন" />
           </SelectTrigger>
