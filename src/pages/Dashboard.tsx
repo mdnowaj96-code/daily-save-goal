@@ -4,6 +4,7 @@ import { ExpenseForm } from "@/components/ExpenseForm";
 import { ExpenseCharts } from "@/components/ExpenseCharts";
 import { MonthDetailDialog } from "@/components/MonthDetailDialog";
 import { SavingsDialog } from "@/components/SavingsDialog";
+import { CalculatorDialog } from "@/components/CalculatorDialog";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,7 +12,7 @@ import { LogOut, Loader2, CalendarCheck, History, FileDown, Plus } from "lucide-
 import { Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { SlidersHorizontal, ChevronDown } from "lucide-react";
-import { Menu } from "lucide-react";
+import { Menu, Calculator } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
@@ -113,6 +114,7 @@ export default function Dashboard() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [closeMonthOpen, setCloseMonthOpen] = useState(false);
   const [savingsDialogOpen, setSavingsDialogOpen] = useState(false);
+  const [calculatorOpen, setCalculatorOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   const [expenseFormOpen, setExpenseFormOpen] = useState(false);
 
@@ -637,6 +639,17 @@ export default function Dashboard() {
                   <CalendarCheck className="h-4 w-4" />
                   মাস ক্লোজ করুন
                 </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    setCalculatorOpen(true);
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-muted"
+                >
+                  <Calculator className="h-4 w-4" />
+                  ক্যালকুলেটর
+                </button>
               </PopoverContent>
             </Popover>
             <div className="relative flex-1">
@@ -880,7 +893,10 @@ export default function Dashboard() {
       </button>
 
       {user && (
-        <SavingsDialog open={savingsDialogOpen} onOpenChange={setSavingsDialogOpen} userId={user.id} />
+        <>
+          <SavingsDialog open={savingsDialogOpen} onOpenChange={setSavingsDialogOpen} userId={user.id} />
+          <CalculatorDialog open={calculatorOpen} onOpenChange={setCalculatorOpen} />
+        </>
       )}
 
       {selectedMonth && user && (
