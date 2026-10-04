@@ -893,8 +893,10 @@ export default function Dashboard() {
       </button>
 
       {user && (
-        <SavingsDialog open={savingsDialogOpen} onOpenChange={setSavingsDialogOpen} userId={user.id} />
-        <CalculatorDialog open={calculatorOpen} onOpenChange={setCalculatorOpen} />
+        <>
+          <SavingsDialog open={savingsDialogOpen} onOpenChange={setSavingsDialogOpen} userId={user.id} />
+          <CalculatorDialog open={calculatorOpen} onOpenChange={setCalculatorOpen} />
+        </>
       )}
 
       {selectedMonth && user && (
