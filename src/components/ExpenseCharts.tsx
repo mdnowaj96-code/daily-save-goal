@@ -135,6 +135,9 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
 
   const [dailyWindowStart, setDailyWindowStart] = useState(0);
   const [dailyWindowSize, setDailyWindowSize] = useState(7);
+  const [monthlyWindowStart, setMonthlyWindowStart] = useState(0);
+  const monthlyWindowSize = 2;
+  const monthlyTouchX = useRef(0);
 
   useEffect(() => {
     const update = () => setDailyWindowSize(window.innerWidth < 640 ? 7 : 12);
@@ -209,6 +212,15 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
       };
     });
   }, [expenses, history, currentMonth, salary]);
+
+  const maxMonthlyStart = Math.max(0, monthlyData.length - monthlyWindowSize);
+  const safeMonthlyStart = Math.min(monthlyWindowStart, maxMonthlyStart);
+  const visibleMonthlyData = monthlyData.slice(safeMonthlyStart, safeMonthlyStart + monthlyWindowSize);
+
+  // সবসময় সবচেয়ে নতুন দুই মাস দেখিয়ে রিখ
+  useEffect(() => {
+    setMonthlyWindowStart(Math.max(0, monthlyData.length - monthlyWindowSize));
+  }, [monthlyData.length]);
 
   // Group by category
   const categoryData = useMemo(() => {
@@ -357,8 +369,41 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
               <p className="text-center text-xs text-muted-foreground py-8">কোনো ডেটা নেই</p>
             ) : (
               <>
-                <ResponsiveContainer width="100%" height={220}>
-                  <BarChart data={monthlyData} margin={{ top: 24, right: 5, left: 0, bottom: 5 }} barCategoryGap="35%">
+                <div className="flex items-center justify-between mb-2">
+                  <button
+                    type="button"
+                    disabled={safeMonthlyStart === 0}
+                    onClick={() => setMonthlyWindowStart((p) => Math.max(0, p - monthlyWindowSize))}
+                    className="flex items-center gap-0.5 text-xs text-muted-foreground disabled:opacity-30 hover:text-foreground transition-colors"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    <span>পূর্ববর্তী</span>
+                  </button>
+                  <span className="text-[11px] font-semibold text-foreground text-center">
+                    {toBnDigits(safeMonthlyStart + 1)} – {toBnDigits(Math.min(monthlyData.length, safeMonthlyStart + monthlyWindowSize))} / {toBnDigits(monthlyData.length)} মাস
+                  </span>
+                  <button
+                    type="button"
+                    disabled={safeMonthlyStart >= maxMonthlyStart}
+                    onClick={() => setMonthlyWindowStart((p) => Math.min(maxMonthlyStart, p + monthlyWindowSize))}
+                    className="flex items-center gap-0.5 text-xs text-muted-foreground disabled:opacity-30 hover:text-foreground transition-colors"
+                  >
+                    <span>পরবর্তী</span>
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                </div>
+                <div
+                  className="touch-pan-y"
+                  onTouchStart={(e) => { monthlyTouchX.current = e.changedTouches[0].clientX; }}
+                  onTouchEnd={(e) => {
+                    const dx = e.changedTouches[0].clientX - monthlyTouchX.current;
+                    if (Math.abs(dx) < 40) return;
+                    if (dx > 0) setMonthlyWindowStart((p) => Math.max(0, p - monthlyWindowSize));
+                    else setMonthlyWindowStart((p) => Math.min(maxMonthlyStart, p + monthlyWindowSize));
+                  }}
+                >
+                <ResponsiveContainer width="100%" height={250}>
+                  <BarChart data={visibleMonthlyData} margin={{ top: 30, right: 5, left: 0, bottom: 5 }} barCategoryGap="22%">
                     <defs>
                       <linearGradient id="monthlyBarGreen" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="0%" stopColor="hsl(var(--monthly-bar))" />
@@ -370,14 +415,14 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                    <XAxis dataKey="month" tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }} interval={0} />
+                    <XAxis dataKey="month" tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }} interval={0} />
                     <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} width={45} />
                     <Tooltip content={<CustomTooltip />} cursor={{ fill: "hsl(var(--muted) / 0.3)" }} />
                     <Bar
                       dataKey="within"
                       stackId="m"
-                      radius={[6, 6, 0, 0]}
-                      maxBarSize={22}
+                      radius={[10, 10, 0, 0]}
+                      maxBarSize={72}
                       fill="url(#monthlyBarGreen)"
                       onClick={(data: any) => {
                         const found = monthlyData.find((m) => m.month === data.month);
@@ -388,8 +433,8 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
                     <Bar
                       dataKey="over"
                       stackId="m"
-                      radius={[6, 6, 0, 0]}
-                      maxBarSize={22}
+                      radius={[10, 10, 0, 0]}
+                      maxBarSize={72}
                       fill="url(#monthlyBarRed)"
                       onClick={(data: any) => {
                         const found = monthlyData.find((m) => m.month === data.month);
@@ -397,15 +442,19 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
                       }}
                       style={{ cursor: "pointer" }}
                     >
+                      {visibleMonthlyData.map((m) => (
+                        <Cell key={m.key} fill={m.over > 0 ? "url(#monthlyBarRed)" : "transparent"} />
+                      ))}
                       <LabelList
                         dataKey="amount"
                         position="top"
                         formatter={(v: number) => `৳${v.toLocaleString("bn-BD")}`}
-                        style={{ fontSize: 11, fill: "hsl(var(--foreground))", fontWeight: 700 }}
+                        style={{ fontSize: 13, fill: "hsl(var(--foreground))", fontWeight: 700 }}
                       />
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
+                </div>
                 {selectedMonth && (() => {
                   const monthEntry = monthlyData.find((m) => m.key === selectedMonth);
                   if (!monthEntry) return null;
