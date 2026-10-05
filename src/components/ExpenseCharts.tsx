@@ -442,6 +442,9 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
                       }}
                       style={{ cursor: "pointer" }}
                     >
+                      {visibleMonthlyData.map((m) => (
+                        <Cell key={m.key} fill={m.over > 0 ? "url(#monthlyBarRed)" : "transparent"} />
+                      ))}
                       <LabelList
                         dataKey="amount"
                         position="top"
