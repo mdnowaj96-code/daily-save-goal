@@ -136,7 +136,7 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
   const [dailyWindowStart, setDailyWindowStart] = useState(0);
   const [dailyWindowSize, setDailyWindowSize] = useState(7);
   const [monthlyWindowStart, setMonthlyWindowStart] = useState(0);
-  const monthlyWindowSize = 2;
+  const monthlyWindowSize = 4;
   const monthlyTouchX = useRef(0);
 
   useEffect(() => {
@@ -204,6 +204,7 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
       return {
         key,
         month: `${BN_MONTHS_FULL[parseInt(mo, 10) - 1]},${toBnDigits(shortYr)}`,
+        short: `${BN_MONTHS[parseInt(mo, 10) - 1]},${toBnDigits(shortYr)}`,
         amount,
         within: amount - over,
         over,
@@ -415,8 +416,8 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                    <XAxis dataKey="month" tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }} interval={0} />
-                    <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} width={45} />
+                    <XAxis dataKey="short" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} interval={0} />
+                    <YAxis tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }} width={38} />
                     <Tooltip content={<CustomTooltip />} cursor={{ fill: "hsl(var(--muted) / 0.3)" }} />
                     <Bar
                       dataKey="within"
@@ -449,7 +450,7 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
                         dataKey="amount"
                         position="top"
                         formatter={(v: number) => `৳${v.toLocaleString("bn-BD")}`}
-                        style={{ fontSize: 13, fill: "hsl(var(--foreground))", fontWeight: 700 }}
+                        style={{ fontSize: 10, fill: "hsl(var(--foreground))", fontWeight: 700 }}
                       />
                     </Bar>
                   </BarChart>
