@@ -166,7 +166,7 @@ export function DashboardSummary({
                 {comparison === null ? (
                   <span className="badge-pill rounded-full px-3 py-1 text-xs font-bold text-primary-foreground">চলতি মাসের হিসাব</span>
                 ) : (
-                  <span className="badge-pill flex items-center gap-1 rounded-full px-3 py-1 text-xs font-bold text-primary-foreground">
+                  <span className={cn("flex items-center gap-1 rounded-full px-3 py-1 text-xs font-bold text-primary-foreground", comparison <= 0 ? "badge-down" : "badge-up")}>
                     {comparison <= 0 ? <TrendingDown className="h-3.5 w-3.5" /> : <TrendingUp className="h-3.5 w-3.5" />}
                     {Math.abs(comparison).toLocaleString("bn-BD", { maximumFractionDigits: 1 })}%
                   </span>
