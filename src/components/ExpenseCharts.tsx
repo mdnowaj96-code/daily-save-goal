@@ -8,6 +8,7 @@ import { useCategories } from "@/hooks/useCategories";
 import { useCategoryTargets } from "@/hooks/useCategoryTargets";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { categoryProgress } from "@/lib/categoryProgress";
 import { ChevronDown, ChevronLeft, ChevronRight, Target, Check, X } from "lucide-react";
 
 interface Expense {
@@ -645,21 +646,14 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
                         </div>
                       ) : (
                         <>
-                          {target > 0 && (
+                          {(target > 0 || item.value > 0) && (
                             <>
                               {/* Four-tier usage bar: 25/50/75/100 levels */}
                               {(() => {
-                                const used = over ? 100 : Math.round(usedPct);
-                                const fillPct = over ? 100 : usedPct;
-                                const tierColor = over
-                                  ? "hsl(0, 72%, 38%)"
-                                  : usedPct <= 25
-                                    ? "hsl(150, 62%, 40%)"
-                                    : usedPct <= 50
-                                      ? "hsl(190, 75%, 42%)"
-                                      : usedPct <= 75
-                                        ? "hsl(38, 95%, 50%)"
-                                        : "hsl(0, 78%, 52%)";
+                                const progress = categoryProgress(item.value, target, salary ?? 0, categoryData.reduce((sum, category) => sum + category.value, 0));
+                                const used = Math.round(progress.percent);
+                                const fillPct = progress.fill;
+                                const tierColor = `hsl(var(--${progress.color}))`;
                                 return (
                                   <div className="mt-1.5 flex items-center gap-2">
                                     <div className="flex-1 h-2.5 rounded-full bg-muted overflow-hidden">
@@ -667,7 +661,7 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
                                         className="h-full rounded-full transition-all duration-500"
                                         style={{
                                           width: `${fillPct}%`,
-                                          background: `linear-gradient(90deg, ${tierColor}cc, ${tierColor})`,
+                                          background: tierColor,
                                         }}
                                       />
                                     </div>
