@@ -647,31 +647,32 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
                         <>
                           {target > 0 && (
                             <>
-                              {/* Segmented target vs actual bar */}
+                              {/* Four-tier usage bar: 25/50/75/100 levels */}
                               {(() => {
-                                const segTotal = 10;
-                                const pctLeft = over ? 0 : Math.round(leftPct);
-                                const filled = Math.round((pctLeft / 100) * segTotal);
-                                const segColor = pctLeft <= 20 ? "hsl(0, 78%, 52%)" : "hsl(150, 62%, 40%)";
+                                const used = over ? 100 : Math.round(usedPct);
+                                const fillPct = over ? 100 : usedPct;
+                                const tierColor = over
+                                  ? "hsl(0, 72%, 38%)"
+                                  : usedPct <= 25
+                                    ? "hsl(150, 62%, 40%)"
+                                    : usedPct <= 50
+                                      ? "hsl(190, 75%, 42%)"
+                                      : usedPct <= 75
+                                        ? "hsl(38, 95%, 50%)"
+                                        : "hsl(0, 78%, 52%)";
                                 return (
                                   <div className="mt-1.5 flex items-center gap-2">
-                                    <div className="flex flex-1 gap-[2px]">
-                                      {Array.from({ length: segTotal }).map((_, si) => (
-                                        <span
-                                          key={si}
-                                          className="h-2.5 flex-1 rounded-[2px] transition-colors duration-500"
-                                          style={
-                                            si < filled
-                                              ? { background: segColor }
-                                              : {
-                                                  background: `repeating-linear-gradient(45deg, ${segColor}55 0 2px, transparent 2px 4px)`,
-                                                }
-                                          }
-                                        />
-                                      ))}
+                                    <div className="flex-1 h-2.5 rounded-full bg-muted overflow-hidden">
+                                      <div
+                                        className="h-full rounded-full transition-all duration-500"
+                                        style={{
+                                          width: `${fillPct}%`,
+                                          background: `linear-gradient(90deg, ${tierColor}cc, ${tierColor})`,
+                                        }}
+                                      />
                                     </div>
-                                    <span className="text-[10px] font-bold shrink-0" style={{ color: segColor }}>
-                                      {toBnDigits(pctLeft)}%
+                                    <span className="text-[10px] font-bold shrink-0" style={{ color: tierColor }}>
+                                      {toBnDigits(used)}%
                                     </span>
                                   </div>
                                 );
