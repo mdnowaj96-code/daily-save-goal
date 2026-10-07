@@ -12,7 +12,8 @@ import { LogOut, Loader2, CalendarCheck, History, FileDown, Plus } from "lucide-
 import { Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { SlidersHorizontal, ChevronDown } from "lucide-react";
-import { Menu, Calculator } from "lucide-react";
+import { Menu, Calculator, Moon, Sun } from "lucide-react";
+import { useDarkMode } from "@/hooks/useDarkMode";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
