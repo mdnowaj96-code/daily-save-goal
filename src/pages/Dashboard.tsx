@@ -118,6 +118,8 @@ export default function Dashboard() {
   const [calculatorOpen, setCalculatorOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   const [expenseFormOpen, setExpenseFormOpen] = useState(false);
+  const { isDark, toggle: toggleDark } = useDarkMode();
+
 
   const toggleFilterCategory = (key: string) =>
     setFilterCategories((prev) => (prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]));
