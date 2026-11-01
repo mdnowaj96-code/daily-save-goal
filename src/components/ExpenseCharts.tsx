@@ -557,17 +557,7 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
                 );
               })()}
               <div className="w-full mt-3 flex flex-col gap-1.5">
-                {(() => {
-                  const extraKeys = [
-                    ...EXPENSE_CATEGORIES.map((c) => c.key),
-                    ...Object.keys(targets),
-                  ].filter((k, idx, arr) => arr.indexOf(k) === idx && !categoryData.some((c) => c.key === k));
-                  const extra = extraKeys.map((k) => {
-                    const meta = getCategoryMeta(k);
-                    return { key: k, name: meta.label, emoji: meta.emoji, value: 0, items: [] as Expense[] };
-                  });
-                  return [...categoryData, ...extra];
-                })().map((item, i) => {
+                {allCategoryItems.map((item, i) => {
                   const target = targets[item.key] ?? 0;
                   const remaining = target - item.value;
                   const usedPct = target > 0 ? Math.min(100, (item.value / target) * 100) : 0;
