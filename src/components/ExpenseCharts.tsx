@@ -47,14 +47,75 @@ const COLORS = [
   "hsl(190, 70%, 45%)",
 ];
 
-const GRADIENTS: Array<[string, string]> = [
-  ["hsl(210, 80%, 60%)", "hsl(210, 80%, 45%)"],
-  ["hsl(340, 75%, 65%)", "hsl(340, 75%, 50%)"],
-  ["hsl(160, 65%, 55%)", "hsl(160, 65%, 40%)"],
-  ["hsl(38, 95%, 65%)", "hsl(38, 95%, 50%)"],
-  ["hsl(270, 70%, 65%)", "hsl(270, 70%, 50%)"],
-  ["hsl(190, 80%, 55%)", "hsl(190, 80%, 40%)"],
-];
+// Half-circle gauge: radial segments per category, total spend in the center
+function HalfCircleGauge({ items, total }: { items: { key: string; name: string; emoji: string; value: number }[]; total: number }) {
+  const cx = 160;
+  const cy = 158;
+  const r0 = 56;
+  const r1 = 112;
+  const n = items.length;
+
+  const segments = (() => {
+    if (n === 0) return [] as { item: (typeof items)[number]; angle: number; spent: boolean; colorIndex: number }[];
+    const GAP = n > 1 ? Math.min(3, 60 / n) : 0;
+    const usable = 180 - GAP * (n - 1);
+    const spent = items.filter((c) => c.value > 0);
+    const zero = items.filter((c) => c.value <= 0);
+    const zeroSpan = Math.min(6, usable / n);
+    const activeBudget = Math.max(usable - zero.length * zeroSpan, 2);
+    const totalVal = spent.reduce((s, c) => s + c.value, 0) || 1;
+    const MIN = Math.min(7, activeBudget / Math.max(spent.length, 1));
+    const raw = spent.map((c) => (c.value / totalVal) * activeBudget);
+    const below = raw.map((s) => s < MIN);
+    const deficit = raw.reduce((s, sp, i) => s + (below[i] ? MIN - sp : 0), 0);
+    const aboveSum = raw.reduce((s, sp, i) => s + (below[i] ? 0 : sp), 0);
+    const spans = raw.map((sp, i) => (below[i] ? MIN : aboveSum > 0 ? sp * (1 - deficit / aboveSum) : sp));
+
+    const out: { item: (typeof items)[number]; angle: number; spent: boolean; colorIndex: number }[] = [];
+    let cursor = 180;
+    items.forEach((item) => {
+      const isSpent = item.value > 0;
+      const span = isSpent ? spans[spent.indexOf(item)] ?? zeroSpan : zeroSpan;
+      out.push({ item, angle: cursor + span / 2, spent: isSpent, colorIndex: items.indexOf(item) });
+      cursor += span + GAP;
+    });
+    return out;
+  })();
+
+  return (
+    <svg viewBox="0 0 320 175" className="w-full max-w-[340px]" role="img" aria-label="খাতওয়ারী মোট খরচ">
+      {segments.map((seg) => {
+        const rad = (seg.angle * Math.PI) / 180;
+        const x1 = cx + r0 * Math.cos(rad);
+        const y1 = cy + r0 * Math.sin(rad);
+        const x2 = cx + r1 * Math.cos(rad);
+        const y2 = cy + r1 * Math.sin(rad);
+        return (
+          <line
+            key={seg.item.key}
+            x1={x1}
+            y1={y1}
+            x2={x2}
+            y2={y2}
+            stroke={seg.spent ? COLORS[seg.colorIndex % COLORS.length] : "hsl(var(--muted-foreground) / 0.35)"}
+            strokeWidth={13}
+            strokeLinecap="round"
+          >
+            <title>{`${seg.item.emoji} ${seg.item.name}: ৳${seg.item.value.toLocaleString("bn-BD")}`}</title>
+          </line>
+        );
+      })}
+      <text x={cx} y={cy - 34} textAnchor="middle" fontSize="12" fill="hsl(var(--muted-foreground))">
+        মোট খরচ
+      </text>
+      <text x={cx} y={cy - 8} textAnchor="middle" fontSize="24" fontWeight="700" fill="hsl(var(--foreground))">
+        ৳{total.toLocaleString("bn-BD")}
+      </text>
+    </svg>
+  );
+}
+
+
 
 const BN_MONTHS = [
   "জানু", "ফেব্রু", "মার্চ", "এপ্রি", "মে", "জুন",
