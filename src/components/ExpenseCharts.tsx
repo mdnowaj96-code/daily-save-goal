@@ -551,36 +551,9 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
               {categoryData.length === 0 ? (
                 <p className="text-center text-xs text-muted-foreground py-4">এখনো কোনো খরচ যোগ হয়নি — নিচে টার্গেট সেট করতে পারেন</p>
               ) : (() => {
-                const totalCat = categoryData.reduce((s, c) => s + c.value, 0);
+                const totalCat = allCategoryItems.reduce((s, c) => s + c.value, 0);
                 return (
-              <ResponsiveContainer width="100%" height={200}>
-                <PieChart>
-                  <defs>
-                    {GRADIENTS.map(([from, to], i) => (
-                      <linearGradient key={i} id={`pieGrad-${i}`} x1="0" y1="0" x2="1" y2="1">
-                        <stop offset="0%" stopColor={from} />
-                        <stop offset="100%" stopColor={to} />
-                      </linearGradient>
-                    ))}
-                  </defs>
-                  <Pie
-                    data={categoryData.slice(0, 6)}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={50}
-                    outerRadius={82}
-                    paddingAngle={3}
-                    dataKey="value"
-                    stroke="hsl(var(--card))"
-                    strokeWidth={2}
-                  >
-                    {categoryData.slice(0, 6).map((_, i) => (
-                      <Cell key={i} fill={`url(#pieGrad-${i % GRADIENTS.length})`} />
-                    ))}
-                  </Pie>
-                  <Tooltip formatter={(value: number) => `৳${value.toLocaleString("bn-BD")}`} />
-                </PieChart>
-              </ResponsiveContainer>
+                <HalfCircleGauge items={allCategoryItems} total={totalCat} />
                 );
               })()}
               <div className="w-full mt-3 flex flex-col gap-1.5">
