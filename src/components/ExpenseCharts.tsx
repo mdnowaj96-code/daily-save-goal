@@ -237,6 +237,20 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
     return Object.values(cats).sort((a, b) => b.value - a.value);
   }, [expenses]);
 
+  // All categories (spent + zero-spend builtins/custom) shared by gauge and list
+  const allCategoryItems = useMemo(() => {
+    const extraKeys = [
+      ...EXPENSE_CATEGORIES.map((c) => c.key),
+      ...Object.keys(targets),
+    ].filter((k, idx, arr) => arr.indexOf(k) === idx && !categoryData.some((c) => c.key === k));
+    const extra = extraKeys.map((k) => {
+      const meta = getCategoryMeta(k);
+      return { key: k, name: meta.label, emoji: meta.emoji, value: 0, items: [] as Expense[] };
+    });
+    return [...categoryData, ...extra];
+  }, [categoryData, EXPENSE_CATEGORIES, targets]);
+
+
   if (expenses.length === 0 && history.length === 0) return null;
 
   const CustomTooltip = ({ active, payload, label }: any) => {
