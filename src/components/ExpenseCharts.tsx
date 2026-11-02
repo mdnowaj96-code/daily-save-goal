@@ -57,27 +57,11 @@ function HalfCircleGauge({ items, total }: { items: { key: string; name: string;
 
   const segments = (() => {
     if (n === 0) return [] as { item: (typeof items)[number]; angle: number; spent: boolean; colorIndex: number }[];
-    const GAP = n > 1 ? Math.min(3, 60 / n) : 0;
-    const usable = 180 - GAP * (n - 1);
-    const spent = items.filter((c) => c.value > 0);
-    const zero = items.filter((c) => c.value <= 0);
-    const zeroSpan = Math.min(6, usable / n);
-    const activeBudget = Math.max(usable - zero.length * zeroSpan, 2);
-    const totalVal = spent.reduce((s, c) => s + c.value, 0) || 1;
-    const MIN = Math.min(7, activeBudget / Math.max(spent.length, 1));
-    const raw = spent.map((c) => (c.value / totalVal) * activeBudget);
-    const below = raw.map((s) => s < MIN);
-    const deficit = raw.reduce((s, sp, i) => s + (below[i] ? MIN - sp : 0), 0);
-    const aboveSum = raw.reduce((s, sp, i) => s + (below[i] ? 0 : sp), 0);
-    const spans = raw.map((sp, i) => (below[i] ? MIN : aboveSum > 0 ? sp * (1 - deficit / aboveSum) : sp));
-
+    // Evenly distribute every category across the full 180° arc
+    const slot = 180 / n;
     const out: { item: (typeof items)[number]; angle: number; spent: boolean; colorIndex: number }[] = [];
-    let cursor = 180;
-    items.forEach((item) => {
-      const isSpent = item.value > 0;
-      const span = isSpent ? spans[spent.indexOf(item)] ?? zeroSpan : zeroSpan;
-      out.push({ item, angle: cursor + span / 2, spent: isSpent, colorIndex: items.indexOf(item) });
-      cursor += span + GAP;
+    items.forEach((item, i) => {
+      out.push({ item, angle: 180 + slot * (i + 0.5), spent: item.value > 0, colorIndex: i });
     });
     return out;
   })();
