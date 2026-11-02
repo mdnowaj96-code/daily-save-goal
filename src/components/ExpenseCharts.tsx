@@ -47,13 +47,16 @@ const COLORS = [
   "hsl(190, 70%, 45%)",
 ];
 
-// Half-circle gauge: radial segments per category, total spend in the center
+// Half-circle gauge: radial segments per category, total spend in the center.
+// Tap a segment to see that category's name and amount in the center.
 function HalfCircleGauge({ items, total }: { items: { key: string; name: string; emoji: string; value: number }[]; total: number }) {
+  const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const cx = 160;
   const cy = 158;
   const r0 = 56;
   const r1 = 112;
   const n = items.length;
+  const selected = items.find((it) => it.key === selectedKey) ?? null;
 
   const segments = (() => {
     if (n === 0) return [] as { item: (typeof items)[number]; angle: number; spent: boolean; colorIndex: number }[];
@@ -67,34 +70,56 @@ function HalfCircleGauge({ items, total }: { items: { key: string; name: string;
   })();
 
   return (
-    <svg viewBox="0 0 320 175" className="w-full max-w-[340px]" role="img" aria-label="খাতওয়ারী মোট খরচ">
+    <svg viewBox="0 0 320 175" className="w-full max-w-[340px] select-none" role="img" aria-label="খাতওয়ারী মোট খরচ">
       {segments.map((seg) => {
         const rad = (seg.angle * Math.PI) / 180;
         const x1 = cx + r0 * Math.cos(rad);
         const y1 = cy + r0 * Math.sin(rad);
         const x2 = cx + r1 * Math.cos(rad);
         const y2 = cy + r1 * Math.sin(rad);
+        const isSel = seg.item.key === selectedKey;
+        const stroke = seg.spent ? COLORS[seg.colorIndex % COLORS.length] : "hsl(var(--muted-foreground) / 0.35)";
         return (
-          <line
-            key={seg.item.key}
-            x1={x1}
-            y1={y1}
-            x2={x2}
-            y2={y2}
-            stroke={seg.spent ? COLORS[seg.colorIndex % COLORS.length] : "hsl(var(--muted-foreground) / 0.35)"}
-            strokeWidth={13}
-            strokeLinecap="round"
-          >
-            <title>{`${seg.item.emoji} ${seg.item.name}: ৳${seg.item.value.toLocaleString("bn-BD")}`}</title>
-          </line>
+          <g key={seg.item.key} className="cursor-pointer" onClick={() => setSelectedKey(isSel ? null : seg.item.key)}>
+            {/* invisible wider hit area for easy tapping */}
+            <line x1={x1} y1={y1} x2={x2} y2={y2} stroke="transparent" strokeWidth={30} />
+            <line
+              x1={x1}
+              y1={y1}
+              x2={x2}
+              y2={y2}
+              stroke={stroke}
+              strokeWidth={isSel ? 17 : 13}
+              strokeLinecap="round"
+              opacity={selectedKey && !isSel ? 0.35 : 1}
+            >
+              <title>{`${seg.item.emoji} ${seg.item.name}: ৳${seg.item.value.toLocaleString("bn-BD")}`}</title>
+            </line>
+          </g>
         );
       })}
-      <text x={cx} y={cy - 34} textAnchor="middle" fontSize="12" fill="hsl(var(--muted-foreground))">
-        মোট খরচ
-      </text>
-      <text x={cx} y={cy - 8} textAnchor="middle" fontSize="24" fontWeight="700" fill="hsl(var(--foreground))">
-        ৳{total.toLocaleString("bn-BD")}
-      </text>
+      {selected ? (
+        <g onClick={() => setSelectedKey(null)} className="cursor-pointer">
+          <text x={cx} y={cy - 42} textAnchor="middle" fontSize="18">
+            {selected.emoji}
+          </text>
+          <text x={cx} y={cy - 24} textAnchor="middle" fontSize="12" fontWeight="600" fill="hsl(var(--foreground))">
+            {selected.name}
+          </text>
+          <text x={cx} y={cy + 2} textAnchor="middle" fontSize="20" fontWeight="700" fill={selected.value > 0 ? COLORS[(items.findIndex((it) => it.key === selected.key)) % COLORS.length] : "hsl(var(--muted-foreground))"}>
+            ৳{selected.value.toLocaleString("bn-BD")}
+          </text>
+        </g>
+      ) : (
+        <>
+          <text x={cx} y={cy - 34} textAnchor="middle" fontSize="12" fill="hsl(var(--muted-foreground))">
+            মোট খরচ
+          </text>
+          <text x={cx} y={cy - 8} textAnchor="middle" fontSize="24" fontWeight="700" fill="hsl(var(--foreground))">
+            ৳{total.toLocaleString("bn-BD")}
+          </text>
+        </>
+      )}
     </svg>
   );
 }
