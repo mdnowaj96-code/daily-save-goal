@@ -197,8 +197,24 @@ export function DashboardSummary({
               </div>
               <p className="text-xs font-semibold text-muted-foreground">সর্বশেষ দৈনিক খরচ</p>
               <p className="mt-1 break-words text-lg font-bold leading-tight text-foreground tabular-nums">{formatMoney(recentDailyExpense)}</p>
-              <svg viewBox="0 0 100 38" className="mt-2 h-8 w-full text-budget-safe" role="img" aria-label="সাম্প্রতিক দৈনিক খরচের রেখাচিত্র">
-                <polyline points={sparklinePoints} fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+              <svg viewBox="0 0 100 38" className="mt-2 h-9 w-full overflow-visible" role="img" aria-label="সাম্প্রতিক দৈনিক খরচের রেখাচিত্র">
+                <defs>
+                  <linearGradient id="daily-spark-line" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stopColor="hsl(var(--budget-steady))" />
+                    <stop offset="100%" stopColor="hsl(var(--budget-safe))" />
+                  </linearGradient>
+                  <linearGradient id="daily-spark-fill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="hsl(var(--budget-safe))" stopOpacity="0.30" />
+                    <stop offset="100%" stopColor="hsl(var(--budget-safe))" stopOpacity="0" />
+                  </linearGradient>
+                </defs>
+                <path d={sparklineArea} fill="url(#daily-spark-fill)" />
+                <path d={sparklinePath} fill="none" stroke="url(#daily-spark-line)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                <circle cx={sparklineEnd.x} cy={sparklineEnd.y} r="4.6" fill="hsl(var(--budget-safe))" opacity="0.3">
+                  <animate attributeName="r" values="3.4;5.8;3.4" dur="2s" repeatCount="indefinite" />
+                  <animate attributeName="opacity" values="0.35;0.08;0.35" dur="2s" repeatCount="indefinite" />
+                </circle>
+                <circle cx={sparklineEnd.x} cy={sparklineEnd.y} r="2" fill="hsl(var(--budget-safe))" stroke="hsl(var(--card))" strokeWidth="0.8" />
               </svg>
               <p className="mt-1 text-[10px] font-medium text-muted-foreground">এই সপ্তাহে {formatMoney(weekExpense)}</p>
             </div>
