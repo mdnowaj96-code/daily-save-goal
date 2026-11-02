@@ -115,14 +115,30 @@ export function DashboardSummary({
           ? { color: "bg-budget-steady", text: "text-budget-steady", soft: "bg-budget-steady/10", label: "নিয়ন্ত্রিত" }
           : { color: "bg-budget-safe", text: "text-budget-safe", soft: "bg-budget-safe/10", label: "ভালো অবস্থায়" };
 
-  const sparklinePoints = useMemo(() => {
-    const values = dailyTrend.length ? dailyTrend : [0, 0];
+  const { sparklinePath, sparklineArea, sparklineEnd } = useMemo(() => {
+    const base = dailyTrend.length ? dailyTrend : [0, 0];
+    const values = base.length === 1 ? [base[0], base[0]] : base;
     const max = Math.max(...values, 1);
-    return values.map((value, index) => {
-      const x = values.length === 1 ? 50 : (index / (values.length - 1)) * 100;
-      const y = 34 - (value / max) * 28;
-      return `${x},${y}`;
-    }).join(" ");
+    const pts = values.map((value, index) => ({
+      x: (index / (values.length - 1)) * 100,
+      y: 34 - (value / max) * 28,
+    }));
+    // Catmull-Rom → cubic bezier for a smooth, wavy trading-style curve
+    let d = `M ${pts[0].x.toFixed(2)} ${pts[0].y.toFixed(2)}`;
+    for (let i = 0; i < pts.length - 1; i++) {
+      const p0 = pts[i - 1] ?? pts[i];
+      const p1 = pts[i];
+      const p2 = pts[i + 1];
+      const p3 = pts[i + 2] ?? p2;
+      const c1x = p1.x + (p2.x - p0.x) / 6;
+      const c1y = p1.y + (p2.y - p0.y) / 6;
+      const c2x = p2.x - (p3.x - p1.x) / 6;
+      const c2y = p2.y - (p3.y - p1.y) / 6;
+      d += ` C ${c1x.toFixed(2)} ${c1y.toFixed(2)}, ${c2x.toFixed(2)} ${c2y.toFixed(2)}, ${p2.x.toFixed(2)} ${p2.y.toFixed(2)}`;
+    }
+    const last = pts[pts.length - 1];
+    const area = `${d} L ${last.x.toFixed(2)} 38 L ${pts[0].x.toFixed(2)} 38 Z`;
+    return { sparklinePath: d, sparklineArea: area, sparklineEnd: last };
   }, [dailyTrend]);
 
   const goToSlide = (index: number) => {
@@ -181,8 +197,24 @@ export function DashboardSummary({
               </div>
               <p className="text-xs font-semibold text-muted-foreground">সর্বশেষ দৈনিক খরচ</p>
               <p className="mt-1 break-words text-lg font-bold leading-tight text-foreground tabular-nums">{formatMoney(recentDailyExpense)}</p>
-              <svg viewBox="0 0 100 38" className="mt-2 h-8 w-full text-budget-safe" role="img" aria-label="সাম্প্রতিক দৈনিক খরচের রেখাচিত্র">
-                <polyline points={sparklinePoints} fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+              <svg viewBox="0 0 100 38" className="mt-2 h-9 w-full overflow-visible" role="img" aria-label="সাম্প্রতিক দৈনিক খরচের রেখাচিত্র">
+                <defs>
+                  <linearGradient id="daily-spark-line" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stopColor="hsl(var(--budget-steady))" />
+                    <stop offset="100%" stopColor="hsl(var(--budget-safe))" />
+                  </linearGradient>
+                  <linearGradient id="daily-spark-fill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="hsl(var(--budget-safe))" stopOpacity="0.30" />
+                    <stop offset="100%" stopColor="hsl(var(--budget-safe))" stopOpacity="0" />
+                  </linearGradient>
+                </defs>
+                <path d={sparklineArea} fill="url(#daily-spark-fill)" />
+                <path d={sparklinePath} fill="none" stroke="url(#daily-spark-line)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                <circle cx={sparklineEnd.x} cy={sparklineEnd.y} r="4.6" fill="hsl(var(--budget-safe))" opacity="0.3">
+                  <animate attributeName="r" values="3.4;5.8;3.4" dur="2s" repeatCount="indefinite" />
+                  <animate attributeName="opacity" values="0.35;0.08;0.35" dur="2s" repeatCount="indefinite" />
+                </circle>
+                <circle cx={sparklineEnd.x} cy={sparklineEnd.y} r="2" fill="hsl(var(--budget-safe))" stroke="hsl(var(--card))" strokeWidth="0.8" />
               </svg>
               <p className="mt-1 text-[10px] font-medium text-muted-foreground">এই সপ্তাহে {formatMoney(weekExpense)}</p>
             </div>
