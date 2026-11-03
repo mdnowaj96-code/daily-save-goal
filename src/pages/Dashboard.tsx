@@ -5,6 +5,7 @@ import { ExpenseCharts } from "@/components/ExpenseCharts";
 import { MonthDetailDialog } from "@/components/MonthDetailDialog";
 import { SavingsDialog } from "@/components/SavingsDialog";
 import { CalculatorDialog } from "@/components/CalculatorDialog";
+import { ComparisonChartDialog } from "@/components/ComparisonChartDialog";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,7 +13,7 @@ import { LogOut, Loader2, CalendarCheck, History, FileDown, Plus } from "lucide-
 import { Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { SlidersHorizontal, ChevronDown } from "lucide-react";
-import { Menu, Calculator, Moon, Sun } from "lucide-react";
+import { Menu, Calculator, Moon, Sun, TrendingUp } from "lucide-react";
 import { useDarkMode } from "@/hooks/useDarkMode";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -116,6 +117,7 @@ export default function Dashboard() {
   const [closeMonthOpen, setCloseMonthOpen] = useState(false);
   const [savingsDialogOpen, setSavingsDialogOpen] = useState(false);
   const [calculatorOpen, setCalculatorOpen] = useState(false);
+  const [comparisonOpen, setComparisonOpen] = useState(false);
   const [filterOpen, setFilterOpen] = useState(false);
   const [expenseFormOpen, setExpenseFormOpen] = useState(false);
   const { isDark, toggle: toggleDark } = useDarkMode();
@@ -653,6 +655,17 @@ export default function Dashboard() {
                   <Calculator className="h-4 w-4" />
                   ক্যালকুলেটর
                 </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    setComparisonOpen(true);
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md hover:bg-muted"
+                >
+                  <TrendingUp className="h-4 w-4" />
+                  খরচ তুলনা গ্রাফ
+                </button>
                 <div className="my-1 h-px bg-border" />
                 <button
                   type="button"
@@ -925,6 +938,13 @@ export default function Dashboard() {
         <>
           <SavingsDialog open={savingsDialogOpen} onOpenChange={setSavingsDialogOpen} userId={user.id} />
           <CalculatorDialog open={calculatorOpen} onOpenChange={setCalculatorOpen} />
+          <ComparisonChartDialog
+            open={comparisonOpen}
+            onOpenChange={setComparisonOpen}
+            expenses={expenses.map((e) => ({ date: e.date, amount: e.amount, month: e.month }))}
+            currentMonth={settings.currentMonth}
+            history={history.map((h) => ({ month: h.month, total_expenses: h.total_expenses }))}
+          />
         </>
       )}
 
