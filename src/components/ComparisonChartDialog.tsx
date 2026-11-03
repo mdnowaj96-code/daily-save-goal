@@ -64,7 +64,8 @@ const ComparisonTooltip = ({
   compareMonth: string;
 }) => {
   if (!active || !payload || payload.length === 0) return null;
-  const point = payload[0].payload as ChartPoint;
+  const point = payload[0].payload;
+  if (!point) return null;
   const current = point.current ?? 0;
   const previous = point.previous ?? 0;
   const change = previous > 0 ? ((current - previous) / previous) * 100 : null;
