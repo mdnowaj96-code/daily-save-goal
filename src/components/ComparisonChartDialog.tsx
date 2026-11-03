@@ -199,7 +199,7 @@ export function ComparisonChartDialog({
             </span>
             <h2 className="truncate text-base font-bold text-white sm:text-lg">খরচের তুলনামূলক চিত্র</h2>
           </div>
-          <div className="flex shrink-0 items-center rounded-full bg-white/15 p-0.5">
+          <div className="mr-8 flex shrink-0 items-center rounded-full bg-white/15 p-0.5">
             {(["current", "previous"] as const).map((key) => (
               <button
                 key={key}
