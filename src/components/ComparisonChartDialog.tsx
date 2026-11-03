@@ -38,6 +38,7 @@ type RangeKey = 7 | 15 | 30;
 interface TooltipPayloadItem {
   value?: number | string;
   dataKey?: string | number;
+  payload?: ChartPoint;
 }
 
 interface ChartPoint {
