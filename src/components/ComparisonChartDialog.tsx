@@ -33,7 +33,6 @@ const shiftMonth = (month: string, delta: number) => {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
 };
 
-type RangeKey = 7 | 15 | 30;
 
 interface TooltipPayloadItem {
   value?: number | string;
@@ -43,7 +42,7 @@ interface TooltipPayloadItem {
 
 interface ChartPoint {
   day: number;
-  current: number;
+  current: number | undefined;
   previous: number;
   prevDay: number;
 }
@@ -66,19 +65,21 @@ const ComparisonTooltip = ({
   if (!active || !payload || payload.length === 0) return null;
   const point = payload[0].payload;
   if (!point) return null;
-  const current = point.current ?? 0;
+  const current = point.current;
   const previous = point.previous ?? 0;
-  const change = previous > 0 ? ((current - previous) / previous) * 100 : null;
+  const change = current !== undefined && previous > 0 ? ((current - previous) / previous) * 100 : null;
   return (
     <div className="rounded-xl border border-border/70 bg-popover p-3 shadow-elegant">
       <p className="text-xs font-bold text-foreground">
         {bnNumber(point.day)} {monthLabel(currentMonth)}
       </p>
       <div className="mt-1.5 flex flex-col gap-1 text-xs">
-        <span className="flex items-center gap-1.5 font-medium text-foreground">
-          <span className="h-2.5 w-2.5 rounded-full bg-budget-safe" />
-          {currentLabel}: {formatMoney(current)}
-        </span>
+        {current !== undefined && (
+          <span className="flex items-center gap-1.5 font-medium text-foreground">
+            <span className="h-2.5 w-2.5 rounded-full bg-budget-safe" />
+            {currentLabel}: {formatMoney(current)}
+          </span>
+        )}
         <span className="flex items-center gap-1.5 font-medium text-foreground">
           <span className="h-2.5 w-2.5 rounded-full bg-budget-danger" />
           {previousLabel}: {formatMoney(previous)}
@@ -105,7 +106,6 @@ export function ComparisonChartDialog({
   currentMonth,
   history,
 }: ComparisonChartDialogProps) {
-  const [range, setRange] = useState<RangeKey>(30);
   const [focus, setFocus] = useState<"current" | "previous">("current");
 
   const dailyByMonth = useMemo(() => {
@@ -144,19 +144,29 @@ export function ComparisonChartDialog({
     return withData.length ? Math.max(...withData) : new Date(yy, mm, 0).getDate();
   }, [currentMonth, curDaily]);
 
-  const startDay = Math.max(1, lastDay - range + 1);
+  // গত মাসের পুরো উত্থান-পতন (১ থেকে মাস শেষ) + বর্তমান মাস আজকের দিন পর্যন্ত
+  const prevMonthDays = useMemo(() => {
+    const [yy, mm] = compareMonth.split("-").map(Number);
+    return new Date(yy, mm, 0).getDate();
+  }, [compareMonth]);
+
+  const maxDay = useMemo(() => {
+    const prevDataMax = Object.keys(prevDaily).reduce((m, k) => Math.max(m, Number(k)), 0);
+    return Math.max(prevMonthDays, lastDay, prevDataMax);
+  }, [prevMonthDays, lastDay, prevDaily]);
+
   const series = useMemo<ChartPoint[]>(() => {
     const points: ChartPoint[] = [];
-    for (let d = startDay; d <= lastDay; d++) {
+    for (let d = 1; d <= maxDay; d++) {
       points.push({
         day: d,
-        current: curDaily[d] ?? 0,
+        current: d <= lastDay ? (curDaily[d] ?? 0) : undefined,
         previous: prevDaily[d] ?? 0,
         prevDay: d,
       });
     }
     return points;
-  }, [startDay, lastDay, curDaily, prevDaily]);
+  }, [maxDay, lastDay, curDaily, prevDaily]);
 
   const change = prevTotal > 0 ? ((curTotal - prevTotal) / prevTotal) * 100 : null;
   const focusIsCurrent = focus === "current";
@@ -181,10 +191,10 @@ export function ComparisonChartDialog({
   const hasPrevDaily = Object.keys(prevDaily).length > 0;
   const tickDays = useMemo(() => {
     const ticks: number[] = [];
-    for (let d = startDay; d <= lastDay; d += 5) ticks.push(d);
-    if (ticks[ticks.length - 1] !== lastDay) ticks.push(lastDay);
+    for (let d = 1; d <= maxDay; d += 5) ticks.push(d);
+    if (ticks[ticks.length - 1] !== maxDay) ticks.push(maxDay);
     return ticks;
-  }, [startDay, lastDay]);
+  }, [maxDay]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -249,32 +259,15 @@ export function ComparisonChartDialog({
           </div>
 
           <div className="rounded-xl border border-border/70 bg-card p-3">
-            <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-              <div className="flex flex-wrap items-center gap-3 text-[11px] font-semibold">
-                <span className="flex items-center gap-1.5 text-foreground">
-                  <span className="inline-block h-0.5 w-5 rounded-full bg-budget-danger" />
-                  গত মাস ({monthLabel(compareMonth)})
-                </span>
-                <span className="flex items-center gap-1.5 text-foreground">
-                  <span className="inline-block h-0.5 w-5 rounded-full bg-budget-safe" />
-                  বর্তমান মাস ({monthLabel(currentMonth)})
-                </span>
-              </div>
-              <div className="flex items-center gap-1">
-                {([7, 15, 30] as RangeKey[]).map((r) => (
-                  <button
-                    key={r}
-                    type="button"
-                    onClick={() => setRange(r)}
-                    className={cn(
-                      "rounded-full px-2.5 py-1 text-[11px] font-bold transition-colors",
-                      range === r ? "bg-budget-safe text-white" : "bg-muted text-muted-foreground hover:bg-muted/70"
-                    )}
-                  >
-                    {bnNumber(r)} দিন
-                  </button>
-                ))}
-              </div>
+            <div className="mb-2 flex flex-wrap items-center gap-3 text-[11px] font-semibold">
+              <span className="flex items-center gap-1.5 text-foreground">
+                <span className="inline-block h-0.5 w-5 rounded-full bg-budget-danger" />
+                গত মাস ({monthLabel(compareMonth)}) — পুরো মাস
+              </span>
+              <span className="flex items-center gap-1.5 text-foreground">
+                <span className="inline-block h-0.5 w-5 rounded-full bg-budget-safe" />
+                বর্তমান মাস ({monthLabel(currentMonth)}) — আজ পর্যন্ত
+              </span>
             </div>
 
             <div className="h-56 w-full" dir="ltr">
@@ -294,7 +287,7 @@ export function ComparisonChartDialog({
                   <XAxis
                     dataKey="day"
                     type="number"
-                    domain={[startDay, lastDay]}
+                    domain={[1, maxDay]}
                     ticks={tickDays}
                     tickFormatter={(d: number) => `${bnNumber(d)}`}
                     tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
