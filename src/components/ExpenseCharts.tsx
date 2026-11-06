@@ -47,9 +47,9 @@ const COLORS = [
   "hsl(190, 70%, 45%)",
 ];
 
-// Half-circle gauge: radial segments per category, total spend in the center.
+// Half-circle gauge: each category bar fills and changes tier color with its progress.
 // Tap a segment to see that category's name and amount in the center.
-function HalfCircleGauge({ items, total }: { items: { key: string; name: string; emoji: string; value: number }[]; total: number }) {
+function HalfCircleGauge({ items, total }: { items: { key: string; name: string; emoji: string; value: number; progress: ReturnType<typeof categoryProgress> }[]; total: number }) {
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const cx = 160;
   const cy = 158;
@@ -59,12 +59,12 @@ function HalfCircleGauge({ items, total }: { items: { key: string; name: string;
   const selected = items.find((it) => it.key === selectedKey) ?? null;
 
   const segments = (() => {
-    if (n === 0) return [] as { item: (typeof items)[number]; angle: number; spent: boolean; colorIndex: number }[];
+    if (n === 0) return [] as { item: (typeof items)[number]; angle: number }[];
     // Evenly distribute every category across the full 180° arc
     const slot = 180 / n;
-    const out: { item: (typeof items)[number]; angle: number; spent: boolean; colorIndex: number }[] = [];
+    const out: { item: (typeof items)[number]; angle: number }[] = [];
     items.forEach((item, i) => {
-      out.push({ item, angle: 180 + slot * (i + 0.5), spent: item.value > 0, colorIndex: i });
+      out.push({ item, angle: 180 + slot * (i + 0.5) });
     });
     return out;
   })();
@@ -78,7 +78,9 @@ function HalfCircleGauge({ items, total }: { items: { key: string; name: string;
         const x2 = cx + r1 * Math.cos(rad);
         const y2 = cy + r1 * Math.sin(rad);
         const isSel = seg.item.key === selectedKey;
-        const stroke = seg.spent ? COLORS[seg.colorIndex % COLORS.length] : "hsl(var(--muted-foreground) / 0.35)";
+        const stroke = `hsl(var(--${seg.item.progress.color}))`;
+        const barLength = Math.hypot(x2 - x1, y2 - y1);
+        const filledLength = barLength * seg.item.progress.fill / 100;
         return (
           <g key={seg.item.key} className="cursor-pointer" onClick={() => setSelectedKey(isSel ? null : seg.item.key)}>
             {/* invisible wider hit area for easy tapping */}
@@ -88,12 +90,24 @@ function HalfCircleGauge({ items, total }: { items: { key: string; name: string;
               y1={y1}
               x2={x2}
               y2={y2}
-              stroke={stroke}
+              stroke="hsl(var(--muted-foreground) / 0.25)"
               strokeWidth={isSel ? 17 : 13}
               strokeLinecap="round"
               opacity={selectedKey && !isSel ? 0.35 : 1}
+            />
+            <line
+              x1={x1}
+              y1={y1}
+              x2={x2}
+              y2={y2}
+              stroke={stroke}
+              strokeWidth={isSel ? 17 : 13}
+              strokeLinecap="round"
+              strokeDasharray={`${filledLength} ${barLength}`}
+              className="transition-all duration-700 ease-out"
+              opacity={selectedKey && !isSel ? 0.35 : 1}
             >
-              <title>{`${seg.item.emoji} ${seg.item.name}: ৳${seg.item.value.toLocaleString("bn-BD")}`}</title>
+              <title>{`${seg.item.emoji} ${seg.item.name}: ৳${seg.item.value.toLocaleString("bn-BD")} (${toBnDigits(Math.round(seg.item.progress.percent))}%)`}</title>
             </line>
           </g>
         );
@@ -106,7 +120,7 @@ function HalfCircleGauge({ items, total }: { items: { key: string; name: string;
           <text x={cx} y={cy - 24} textAnchor="middle" fontSize="12" fontWeight="600" fill="hsl(var(--foreground))">
             {selected.name}
           </text>
-          <text x={cx} y={cy + 2} textAnchor="middle" fontSize="20" fontWeight="700" fill={selected.value > 0 ? COLORS[(items.findIndex((it) => it.key === selected.key)) % COLORS.length] : "hsl(var(--muted-foreground))"}>
+          <text x={cx} y={cy + 2} textAnchor="middle" fontSize="20" fontWeight="700" fill={selected.value > 0 ? `hsl(var(--${selected.progress.color}))` : "hsl(var(--muted-foreground))"}>
             ৳{selected.value.toLocaleString("bn-BD")}
           </text>
         </g>
@@ -622,8 +636,12 @@ export function ExpenseCharts({ expenses, history = [], currentMonth, onDeleteEx
                 <p className="text-center text-xs text-muted-foreground py-4">এখনো কোনো খরচ যোগ হয়নি — নিচে টার্গেট সেট করতে পারেন</p>
               ) : (() => {
                 const totalCat = allCategoryItems.reduce((s, c) => s + c.value, 0);
+                const gaugeItems = allCategoryItems.map((item) => ({
+                  ...item,
+                  progress: categoryProgress(item.value, targets[item.key] ?? 0, salary ?? 0, totalCat),
+                }));
                 return (
-                <HalfCircleGauge items={allCategoryItems} total={totalCat} />
+                <HalfCircleGauge items={gaugeItems} total={totalCat} />
                 );
               })()}
               <div className="w-full mt-3 flex flex-col gap-1.5">
